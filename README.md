@@ -65,7 +65,7 @@ Options:
 ## Open items (to fill in before/during build)
 
 - [x] General news digest feeds — tracked in [`feeds.yaml`](./feeds.yaml)
-      (PBS NewsHour, UPI Top News, BBC World News, NPR News)
+      (PBS NewsHour, UPI Top News, BBC World News)
 - [ ] RSS feed URLs for: soccer/World Cup, tech/AI, NFL, NWSL, WNBA —
       tracked in [`feeds.yaml`](./feeds.yaml)
 - [ ] Episode cadence (daily / a few times a week / etc.)

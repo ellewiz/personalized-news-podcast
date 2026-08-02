@@ -9,8 +9,6 @@ tier1_general_news:
     url: https://rss.upi.com/news/tn_us.rss
   - name: BBC World News
     url: https://feeds.bbci.co.uk/news/world/rss.xml
-  - name: NPR News
-    url: https://feeds.npr.org/1004/rss.xml
 
 tier2:
   soccer_world_cup: []
