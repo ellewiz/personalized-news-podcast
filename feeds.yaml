@@ -22,5 +22,9 @@ tier2:
       url: https://www.espn.com/espn/rss/nfl/news
     - name: Bleeding Green Nation (Philadelphia Eagles)
       url: https://www.bleedinggreennation.com/rss/index.xml
-  nwsl: []
-  wnba: []
+  nwsl:
+    - name: Just Women's Sports
+      url: https://justwomenssports.com/feed/
+  wnba:
+    - name: Just Women's Sports
+      url: https://justwomenssports.com/feed/
