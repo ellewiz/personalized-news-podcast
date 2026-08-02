@@ -11,7 +11,9 @@ tier1_general_news:
     url: https://feeds.bbci.co.uk/news/world/rss.xml
 
 tier2:
-  soccer_world_cup: []
+  soccer_world_cup:
+    - name: The Independent — World Cup
+      url: http://www.independent.co.uk/sport/football/world-cup/rss
   tech_ai:
     - name: Daring Fireball
       url: https://daringfireball.net/feeds/main
