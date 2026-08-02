@@ -1,0 +1,24 @@
+# ElevenLabs voice assignments. Each entry needs a real ElevenLabs voice_id
+# (from https://elevenlabs.io/app/voice-library or your own custom voices).
+# voice_name is just a human-readable label for your own reference.
+
+tier1:
+  voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
+  voice_name: "TBD"
+
+tier2:
+  soccer_world_cup:
+    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
+    voice_name: "TBD"
+  tech_ai:
+    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
+    voice_name: "TBD"
+  nfl:
+    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
+    voice_name: "TBD"
+  nwsl:
+    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
+    voice_name: "TBD"
+  wnba:
+    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
+    voice_name: "TBD"

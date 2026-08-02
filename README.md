@@ -80,3 +80,64 @@ that cadence. Options:
 - [x] Single narrator vs. two-host conversational format — single
       narrator (no two-host conversational format)
 - [x] Preferred hosting target — GitHub Pages
+
+## Implementation
+
+The pipeline is a small Python package:
+
+```
+feeds.yaml            RSS sources per tier/category
+config/voices.yaml     ElevenLabs voice_id per tier/category (fill in real IDs)
+podcast/
+  config.py            env vars + config file loading
+  models.py             FeedItem / ScriptSegment dataclasses
+  fetch.py               pull + recency-filter each feed
+  dedupe.py               collapse near-duplicate stories (title similarity)
+  script.py                 build spoken scripts via the Anthropic API
+  tts.py                     ElevenLabs synthesis + mp3 concatenation (ffmpeg)
+  rss_feed.py                 rebuild docs/feed.xml from state/state.json
+  pipeline.py                  orchestrates the full run
+run.py                  entrypoint: `python run.py`
+state/state.json        seen item guids + published episode metadata
+docs/                   GitHub Pages root: feed.xml + episodes/*.mp3
+scripts/publish.sh       run pipeline, then git add/commit/push docs + state
+```
+
+### Setup
+
+1. `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
+2. Install [ffmpeg](https://ffmpeg.org/) (used to concatenate segment audio into
+   one episode file).
+3. Copy `.env.example` to `.env` and fill in `ANTHROPIC_API_KEY`,
+   `ELEVENLABS_API_KEY`, and `PODCAST_BASE_URL`.
+4. Fill in real ElevenLabs `voice_id`s in `config/voices.yaml` (one per
+   tier/category — pick from your ElevenLabs voice library).
+5. In GitHub repo settings, enable **Pages** → deploy from branch `main`,
+   folder `/docs`. `PODCAST_BASE_URL` should match the resulting Pages URL.
+
+### Running
+
+```
+source .venv/bin/activate && set -a && source .env && set +a
+python run.py
+```
+
+This fetches new items, dedupes, generates scripts, synthesizes audio,
+writes `docs/episodes/<date>.mp3`, and rebuilds `docs/feed.xml`. It does
+**not** commit/push — use `scripts/publish.sh` for the full run-and-publish
+cycle (intended to be wired into cron/systemd-timer for the Monday–Friday
+cadence).
+
+### Notes / caveats
+
+- `dedupe.py` uses a title-similarity heuristic (no LLM call) to collapse
+  near-duplicate stories; it's intentionally simple and may need tuning once
+  real episodes are generated.
+- `state/state.json` is the source of truth for both "already seen" item
+  guids and the full episode list used to rebuild `feed.xml` — it's
+  committed to the repo (via `scripts/publish.sh`) so state persists across
+  runs without a separate database.
+- Feed fetching, script generation, and TTS all need real outbound network
+  access and valid API keys; none of that was exercised end-to-end during
+  scaffolding (dedupe logic and RSS generation were verified with sample
+  data instead).
