@@ -25,6 +25,10 @@ tier2:
   nwsl:
     - name: Just Women's Sports
       url: https://justwomenssports.com/feed/
+    - name: The Gist — Daily Sports
+      url: https://www.thegistsports.com/rss-daily-sports.xml
   wnba:
     - name: Just Women's Sports
       url: https://justwomenssports.com/feed/
+    - name: The Gist — Daily Sports
+      url: https://www.thegistsports.com/rss-daily-sports.xml

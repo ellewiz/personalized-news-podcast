@@ -36,16 +36,19 @@ Two tiers per episode:
    story, restrict to a recency window (e.g. last 24–48h)
 3. **Script generation** — turn filtered items into a spoken script
    - Tier 1 stays short and factual
-   - Tier 2 gets more narrative/conversational treatment
-   - Decide: single narrator vs. two-host conversational format (open
-     item below)
-4. **Audio** — convert the script to speech via TTS
+   - Tier 2 gets more narrative treatment, but each segment is still a
+     single narrator speaking (no two-host conversational format)
+   - Each Tier 2 category gets its own distinct voice (e.g. one voice for
+     soccer/World Cup, another for tech/AI, another for NFL, etc.); Tier 1
+     uses its own consistent voice throughout
+4. **Audio** — convert the script to speech via TTS (ElevenLabs), mapping
+   each segment to its assigned per-category voice
 5. **Publish** — output an MP3 and update an RSS feed XML with the new
    episode (title, description, pubDate, audio enclosure URL + length,
    duration)
 6. **Host** — the feed XML and MP3 files need a stable public URL for
-   podcast apps to poll; static hosting (e.g. GitHub Pages) is a
-   reasonable free option since nothing dynamic is needed server-side
+   podcast apps to poll; hosted via GitHub Pages (free static hosting,
+   nothing dynamic needed server-side)
 
 ## Delivery
 
@@ -54,22 +57,26 @@ pasting that feed URL directly (not via the built-in show directory).
 
 ## Scheduling
 
-Not automatic by default — the pipeline needs something to trigger it.
-Options:
+**Cadence: Monday through Friday** (weekdays only, no weekend episodes).
 
-- Manual run whenever a new episode is wanted
-- A cron job / scheduled task
+Not automatic by default — the pipeline needs something to trigger it on
+that cadence. Options:
+
+- A cron job / scheduled task (e.g. weekday mornings)
 - Wired into existing automation infra (e.g. a scheduled Home Assistant
   action or shell script) for a fully hands-off cadence
+- Manual run as a fallback whenever needed
 
 ## Open items (to fill in before/during build)
 
 - [x] RSS feed URLs for general news digest, soccer/World Cup, tech/AI,
       NFL, NWSL, WNBA — all tracked in [`feeds.yaml`](./feeds.yaml).
-      NWSL and WNBA currently share one general women's-sports source
-      (Just Women's Sports); dedicated feeds can be added later if
-      needed.
-- [ ] Episode cadence (daily / a few times a week / etc.)
-- [ ] Preferred TTS voice/provider
-- [ ] Single narrator vs. two-host conversational format
-- [ ] Preferred hosting target if not GitHub Pages
+      NWSL and WNBA currently share two general women's-sports sources
+      (Just Women's Sports, The Gist); dedicated feeds can be added later
+      if needed.
+- [x] Episode cadence — Monday through Friday
+- [x] Preferred TTS voice/provider — ElevenLabs, with a distinct voice per
+      Tier 2 category
+- [x] Single narrator vs. two-host conversational format — single
+      narrator (no two-host conversational format)
+- [x] Preferred hosting target — GitHub Pages
