@@ -64,9 +64,10 @@ Options:
 
 ## Open items (to fill in before/during build)
 
-- [ ] Actual RSS feed URLs for: general news digest, soccer/World Cup,
-      tech/AI, NFL, NWSL, WNBA — tracked in [`feeds.yaml`](./feeds.yaml)
-      (general news digest started: PBS NewsHour Headlines)
+- [x] General news digest feeds — tracked in [`feeds.yaml`](./feeds.yaml)
+      (PBS NewsHour, UPI Top News, BBC World News, NPR News)
+- [ ] RSS feed URLs for: soccer/World Cup, tech/AI, NFL, NWSL, WNBA —
+      tracked in [`feeds.yaml`](./feeds.yaml)
 - [ ] Episode cadence (daily / a few times a week / etc.)
 - [ ] Preferred TTS voice/provider
 - [ ] Single narrator vs. two-host conversational format
