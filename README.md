@@ -64,11 +64,11 @@ Options:
 
 ## Open items (to fill in before/during build)
 
-- [x] General news digest feeds — tracked in [`feeds.yaml`](./feeds.yaml)
-      (PBS NewsHour, UPI Top News, BBC World News)
-- [ ] RSS feed URLs for: soccer/World Cup, tech/AI, NWSL, WNBA — tracked
-      in [`feeds.yaml`](./feeds.yaml)
-- [x] NFL feed — ESPN NFL News (tracked in [`feeds.yaml`](./feeds.yaml))
+- [x] RSS feed URLs for general news digest, soccer/World Cup, tech/AI,
+      NFL, NWSL, WNBA — all tracked in [`feeds.yaml`](./feeds.yaml).
+      NWSL and WNBA currently share one general women's-sports source
+      (Just Women's Sports); dedicated feeds can be added later if
+      needed.
 - [ ] Episode cadence (daily / a few times a week / etc.)
 - [ ] Preferred TTS voice/provider
 - [ ] Single narrator vs. two-host conversational format
