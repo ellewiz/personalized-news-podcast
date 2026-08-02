@@ -66,8 +66,9 @@ Options:
 
 - [x] General news digest feeds — tracked in [`feeds.yaml`](./feeds.yaml)
       (PBS NewsHour, UPI Top News, BBC World News)
-- [ ] RSS feed URLs for: soccer/World Cup, tech/AI, NFL, NWSL, WNBA —
-      tracked in [`feeds.yaml`](./feeds.yaml)
+- [ ] RSS feed URLs for: soccer/World Cup, tech/AI, NWSL, WNBA — tracked
+      in [`feeds.yaml`](./feeds.yaml)
+- [x] NFL feed — ESPN NFL News (tracked in [`feeds.yaml`](./feeds.yaml))
 - [ ] Episode cadence (daily / a few times a week / etc.)
 - [ ] Preferred TTS voice/provider
 - [ ] Single narrator vs. two-host conversational format

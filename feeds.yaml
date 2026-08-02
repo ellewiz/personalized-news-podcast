@@ -13,6 +13,8 @@ tier1_general_news:
 tier2:
   soccer_world_cup: []
   tech_ai: []
-  nfl: []
+  nfl:
+    - name: ESPN NFL News
+      url: https://www.espn.com/espn/rss/nfl/news
   nwsl: []
   wnba: []
