@@ -12,7 +12,9 @@ tier1_general_news:
 
 tier2:
   soccer_world_cup: []
-  tech_ai: []
+  tech_ai:
+    - name: Daring Fireball
+      url: https://daringfireball.net/feeds/main
   nfl:
     - name: ESPN NFL News
       url: https://www.espn.com/espn/rss/nfl/news
