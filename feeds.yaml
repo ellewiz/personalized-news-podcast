@@ -1,0 +1,14 @@
+# RSS feed sources for the podcast pipeline.
+# Tier 1: digest-style general news (kept to a handful of headlines total).
+# Tier 2: category-specific feeds, one list per category.
+
+tier1_general_news:
+  - name: PBS NewsHour Headlines
+    url: https://www.pbs.org/newshour/feeds/rss/headlines
+
+tier2:
+  soccer_world_cup: []
+  tech_ai: []
+  nfl: []
+  nwsl: []
+  wnba: []
