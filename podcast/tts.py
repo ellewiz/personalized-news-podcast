@@ -39,13 +39,15 @@ def concatenate_mp3s(segment_paths: list[Path], out_path: Path) -> Path:
     list_file = out_path.with_suffix(".concat.txt")
     list_file.write_text("\n".join(f"file '{p.resolve()}'" for p in segment_paths))
 
+    # Re-encode rather than stream-copy: segment files may not share identical
+    # MP3 parameters, and "-c copy" concat has been unreliable (crashes) across
+    # ffmpeg builds when that's the case.
     subprocess.run(
         [
             "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-            "-i", str(list_file), "-c", "copy", str(out_path),
+            "-i", str(list_file), "-c:a", "libmp3lame", "-q:a", "2", str(out_path),
         ],
         check=True,
-        capture_output=True,
     )
     list_file.unlink(missing_ok=True)
     return out_path

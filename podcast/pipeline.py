@@ -71,22 +71,23 @@ def run() -> Path:
 
     _log("Synthesizing audio (calls the Google TTS API, one per segment)...")
     segment_paths = []
-    try:
-        for i, segment in enumerate(segments):
-            _log(f"  {segment.segment_key}...")
-            segment_path = work_dir / f"{i:02d}-{segment.segment_key}.mp3"
-            tts.synthesize_segment(segment, segment_path)
-            segment_paths.append(segment_path)
+    for i, segment in enumerate(segments):
+        _log(f"  {segment.segment_key}...")
+        segment_path = work_dir / f"{i:02d}-{segment.segment_key}.mp3"
+        tts.synthesize_segment(segment, segment_path)
+        segment_paths.append(segment_path)
 
-        _log("Stitching segments into one episode file (ffmpeg)...")
-        config.EPISODES_DIR.mkdir(parents=True, exist_ok=True)
-        episode_filename = f"{episode_id}.mp3"
-        episode_path = config.EPISODES_DIR / episode_filename
-        tts.concatenate_mp3s(segment_paths, episode_path)
-    finally:
-        for p in segment_paths:
-            p.unlink(missing_ok=True)
-        work_dir.rmdir()
+    _log("Stitching segments into one episode file (ffmpeg)...")
+    config.EPISODES_DIR.mkdir(parents=True, exist_ok=True)
+    episode_filename = f"{episode_id}.mp3"
+    episode_path = config.EPISODES_DIR / episode_filename
+    # Segment files (and work_dir) are only cleaned up after a successful
+    # concatenation, so a failed run leaves them behind for debugging.
+    tts.concatenate_mp3s(segment_paths, episode_path)
+
+    for p in segment_paths:
+        p.unlink(missing_ok=True)
+    work_dir.rmdir()
 
     file_size = episode_path.stat().st_size
     duration_seconds = tts.get_duration_seconds(episode_path)
