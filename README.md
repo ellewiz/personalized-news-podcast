@@ -109,16 +109,14 @@ scripts/publish.sh       run pipeline, then git add/commit/push docs + state
 ### Setup
 
 1. `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
-2. Install [ffmpeg](https://ffmpeg.org/) (used to concatenate segment audio into
-   one episode file).
-3. Copy `.env.example` to `.env` and fill in `ANTHROPIC_API_KEY`,
+2. Copy `.env.example` to `.env` and fill in `ANTHROPIC_API_KEY`,
    `GOOGLE_TTS_API_KEY` (Google Cloud Console → enable "Cloud Text-to-Speech
    API" → Credentials → API key), and `PODCAST_BASE_URL`.
-4. `config/voices.yaml` already has a distinct Neural2 voice per
+3. `config/voices.yaml` already has a distinct Neural2 voice per
    tier/category — swap them for others from the
    [voice list](https://cloud.google.com/text-to-speech/docs/voices) if
    you want a different sound.
-5. In GitHub repo settings, enable **Pages** → deploy from branch `main`,
+4. In GitHub repo settings, enable **Pages** → deploy from branch `main`,
    folder `/docs`. `PODCAST_BASE_URL` should match the resulting Pages URL.
 
 ### Running

@@ -1,5 +1,4 @@
 import base64
-import subprocess
 from pathlib import Path
 
 import requests
@@ -35,21 +34,18 @@ def synthesize_segment(segment: ScriptSegment, out_path: Path) -> Path:
 
 
 def concatenate_mp3s(segment_paths: list[Path], out_path: Path) -> Path:
-    """Concatenate segment MP3s into a single episode file. Requires ffmpeg."""
-    list_file = out_path.with_suffix(".concat.txt")
-    list_file.write_text("\n".join(f"file '{p.resolve()}'" for p in segment_paths))
+    """Concatenate segment MP3s into a single episode file.
 
-    # Re-encode rather than stream-copy: segment files may not share identical
-    # MP3 parameters, and "-c copy" concat has been unreliable (crashes) across
-    # ffmpeg builds when that's the case.
-    subprocess.run(
-        [
-            "ffmpeg", "-y", "-f", "concat", "-safe", "0",
-            "-i", str(list_file), "-c:a", "libmp3lame", "-q:a", "2", str(out_path),
-        ],
-        check=True,
-    )
-    list_file.unlink(missing_ok=True)
+    Plain binary concatenation, not ffmpeg. Google Cloud TTS returns each
+    segment as a plain MP3 frame stream with no container-level metadata, so
+    concatenating the raw bytes plays back correctly — and it sidesteps a
+    subprocess/fork crash ffmpeg was hitting when invoked from this process
+    on macOS (a known fork-safety issue with Apple's media/network
+    frameworks in multi-threaded processes).
+    """
+    with open(out_path, "wb") as out_file:
+        for segment_path in segment_paths:
+            out_file.write(segment_path.read_bytes())
     return out_path
 
 
