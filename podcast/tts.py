@@ -33,6 +33,30 @@ def synthesize_segment(segment: ScriptSegment, out_path: Path) -> Path:
     return out_path
 
 
+def synthesize_pause(duration_ms: int, voice_name: str, language_code: str, out_path: Path) -> Path:
+    """A silent clip, generated via SSML <break>, used as a gap between segments."""
+    if not config.GOOGLE_TTS_API_KEY:
+        raise RuntimeError("GOOGLE_TTS_API_KEY is not set")
+
+    response = requests.post(
+        GOOGLE_TTS_URL,
+        params={"key": config.GOOGLE_TTS_API_KEY},
+        json={
+            "input": {"ssml": f'<speak><break time="{duration_ms}ms"/></speak>'},
+            "voice": {
+                "languageCode": language_code,
+                "name": voice_name,
+            },
+            "audioConfig": {"audioEncoding": "MP3"},
+        },
+        timeout=60,
+    )
+    response.raise_for_status()
+    audio_content_b64 = response.json()["audioContent"]
+    out_path.write_bytes(base64.b64decode(audio_content_b64))
+    return out_path
+
+
 def concatenate_mp3s(segment_paths: list[Path], out_path: Path) -> Path:
     """Concatenate segment MP3s into a single episode file.
 

@@ -13,6 +13,8 @@ CATEGORY_LABELS = {
     "wnba": "the WNBA",
 }
 
+PAUSE_MS = 900
+
 
 def _log(message: str) -> None:
     print(message, flush=True)
@@ -76,6 +78,11 @@ def run() -> Path:
         segment_path = work_dir / f"{i:02d}-{segment.segment_key}.mp3"
         tts.synthesize_segment(segment, segment_path)
         segment_paths.append(segment_path)
+
+        if i < len(segments) - 1:
+            pause_path = work_dir / f"{i:02d}-pause.mp3"
+            tts.synthesize_pause(PAUSE_MS, segment.voice_name, segment.language_code, pause_path)
+            segment_paths.append(pause_path)
 
     _log("Stitching segments into one episode file...")
     config.EPISODES_DIR.mkdir(parents=True, exist_ok=True)
