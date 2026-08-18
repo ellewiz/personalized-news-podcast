@@ -14,6 +14,10 @@ CATEGORY_LABELS = {
 }
 
 
+def _log(message: str) -> None:
+    print(message, flush=True)
+
+
 def run() -> Path:
     if not config.PODCAST_BASE_URL:
         raise RuntimeError(
@@ -25,7 +29,10 @@ def run() -> Path:
     app_state = state_module.load_state()
     seen_guids = set(app_state["seen_guids"])
 
+    _log("Fetching feeds...")
     fetched = fetch.fetch_all(feeds, seen_guids)
+    for key, items in fetched.items():
+        _log(f"  {key}: {len(items)} new item(s)")
 
     tier1_items = dedupe.dedupe_items(fetched.get("tier1", []))
     tier2_items = {
@@ -33,14 +40,18 @@ def run() -> Path:
         for category, items in fetched.items()
         if category != "tier1"
     }
+    _log("Deduped.")
 
+    _log("Generating scripts (calls the Anthropic API, one per segment)...")
     tier1_voice = voices["tier1"]
+    _log("  tier1...")
     segments: list[ScriptSegment] = [
         script.build_tier1_segment(
             tier1_items, tier1_voice["voice_name"], tier1_voice["language_code"]
         )
     ]
     for category, items in tier2_items.items():
+        _log(f"  {category}...")
         category_voice = voices["tier2"][category]
         segments.append(
             script.build_tier2_segment(
@@ -51,19 +62,23 @@ def run() -> Path:
                 category_voice["language_code"],
             )
         )
+    _log("Scripts done.")
 
     episode_date = datetime.now(timezone.utc)
     episode_id = episode_date.strftime("%Y-%m-%d")
     work_dir = config.EPISODES_DIR / f".tmp-{episode_id}"
     work_dir.mkdir(parents=True, exist_ok=True)
 
+    _log("Synthesizing audio (calls the Google TTS API, one per segment)...")
     segment_paths = []
     try:
         for i, segment in enumerate(segments):
+            _log(f"  {segment.segment_key}...")
             segment_path = work_dir / f"{i:02d}-{segment.segment_key}.mp3"
             tts.synthesize_segment(segment, segment_path)
             segment_paths.append(segment_path)
 
+        _log("Stitching segments into one episode file (ffmpeg)...")
         config.EPISODES_DIR.mkdir(parents=True, exist_ok=True)
         episode_filename = f"{episode_id}.mp3"
         episode_path = config.EPISODES_DIR / episode_filename
@@ -75,6 +90,7 @@ def run() -> Path:
 
     file_size = episode_path.stat().st_size
     duration_seconds = tts.get_duration_seconds(episode_path)
+    _log(f"Episode audio ready: {episode_path} ({duration_seconds}s, {file_size} bytes)")
 
     episode = {
         "guid": str(uuid.uuid4()),
@@ -90,6 +106,7 @@ def run() -> Path:
     all_seen_guids = {item.guid for items in fetched.values() for item in items}
     app_state["seen_guids"] = sorted(seen_guids | all_seen_guids)
 
+    _log("Updating feed.xml and state.json...")
     rss_feed.write_feed(app_state["episodes"])
     state_module.save_state(app_state)
 
