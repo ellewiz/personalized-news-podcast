@@ -13,6 +13,9 @@ CATEGORY_LABELS = {
     "wnba": "the WNBA",
 }
 
+# Segment order: tech/AI right after Tier 1, then all sports grouped together.
+CATEGORY_ORDER = ["tech_ai", "soccer_world_cup", "nfl", "nwsl", "wnba"]
+
 PAUSE_MS = 900
 
 
@@ -52,7 +55,8 @@ def run() -> Path:
             tier1_items, tier1_voice["voice_name"], tier1_voice["language_code"]
         )
     ]
-    for category, items in tier2_items.items():
+    for category in CATEGORY_ORDER:
+        items = tier2_items.get(category, [])
         _log(f"  {category}...")
         category_voice = voices["tier2"][category]
         segments.append(
