@@ -96,15 +96,6 @@
   ],
   "episodes": [
     {
-      "guid": "402e35aa-3d2f-4b45-b106-daaf4f4f1425",
-      "title": "Daily Briefing \u2014 2026-08-18",
-      "description": "Your personalized news and sports briefing.",
-      "pub_date": "2026-08-18T01:32:25.808376+00:00",
-      "audio_url": "https://ellewiz.github.io/personalized-news-podcast/episodes/2026-08-18.mp3",
-      "file_size": 4025664,
-      "duration_seconds": 503
-    },
-    {
       "guid": "22550b28-7d43-43db-95bf-422a61dde14e",
       "title": "Daily Briefing \u2014 2026-08-18",
       "description": "Your personalized news and sports briefing.",

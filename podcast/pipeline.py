@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import config, dedupe, fetch, rss_feed, script, state as state_module, tts
+from . import config, dedupe, fetch, rss_feed, script, state as state_module, tts, web_player
 from .models import ScriptSegment
 
 CATEGORY_LABELS = {
@@ -113,13 +113,19 @@ def run() -> Path:
         "file_size": file_size,
         "duration_seconds": duration_seconds,
     }
+    # A rerun on the same calendar day overwrites the same audio file — replace
+    # that day's stale entry instead of appending a duplicate pointing at it.
+    app_state["episodes"] = [
+        e for e in app_state["episodes"] if e["audio_url"] != episode["audio_url"]
+    ]
     app_state["episodes"].append(episode)
 
     all_seen_guids = {item.guid for items in fetched.values() for item in items}
     app_state["seen_guids"] = sorted(seen_guids | all_seen_guids)
 
-    _log("Updating feed.xml and state.json...")
+    _log("Updating feed.xml, web player, and state.json...")
     rss_feed.write_feed(app_state["episodes"])
+    web_player.write_index_html(app_state["episodes"])
     state_module.save_state(app_state)
 
     return episode_path
