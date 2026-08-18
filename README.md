@@ -1,147 +1,197 @@
-# Personalized News Podcast — Build Spec
+# Personalized News Podcast
 
-## Goal
+A daily audio news briefing, generated automatically and published as a
+real RSS podcast feed. **Status: live and running** — publishes itself
+every weekday morning via a scheduled job on the author's Mac, no manual
+steps required.
 
-Generate a personalized audio news podcast on a recurring basis, publish it
-as an RSS feed, and make it subscribable from Pocket Casts (and any other
-RSS-based podcast app).
+Subscribe by pasting the feed URL directly into any podcast app (Pocket
+Casts, Apple Podcasts, Overcast, etc.):
+
+```
+https://ellewiz.github.io/personalized-news-podcast/feed.xml
+```
+
+## What it actually does
+
+Every weekday morning, without anyone touching a keyboard:
+
+1. Pulls fresh items from a set of RSS feeds (general news + five sports/
+   tech categories)
+2. Dedupes near-identical coverage of the same story
+3. Writes a spoken script per segment via the Anthropic API
+4. Synthesizes each segment as audio via Google Cloud Text-to-Speech, with
+   a different voice per category
+5. Stitches the segments into one MP3, with a short pause between each
+6. Publishes the new episode + updated RSS feed to GitHub Pages
+7. Commits and pushes the result back to this repo
 
 ## Content structure
 
 Two tiers per episode:
 
-### Tier 1 — Brief awareness (target: under ~1 minute of runtime)
+### Tier 1 — Brief awareness (target: well under a minute)
 
-- Pull from one or two digest-style general news sources, not raw
-  per-article feeds
-- Summarize the top few headlines in a handful of sentences total
-- Explicit goal: "aware, not drowning" — never stack multiple articles
-  about the same single story
+- Pulled from three general-news digest feeds (PBS NewsHour, UPI Top News,
+  BBC World News — see [`feeds.yaml`](./feeds.yaml))
+- A handful of sentences covering the top headlines
+- Goal: "aware, not drowning" — never stacks multiple articles about the
+  same single story
 
 ### Tier 2 — Deep dive (the bulk of the episode)
 
-- Categories: soccer / World Cup, tech & AI news, NFL, NWSL, WNBA
-- Pull from category-specific feeds (URLs supplied separately, see Open
-  Items)
-- Depth per category scales with how much actually happened in that
-  window — a quiet week for a given sport should get a short mention, not
-  padded filler, so episode length should flex naturally rather than
-  target a fixed runtime
+Segment order: **Tech & AI**, then all sports grouped together —
+**Soccer/World Cup, NFL, NWSL, WNBA**, straight after Tier 1.
 
-## Pipeline
+- Each category pulls from its own feed(s) (see [`feeds.yaml`](./feeds.yaml))
+- Depth scales with how much actually happened — a quiet window for a
+  given category gets a one-line mention instead of padded filler, so
+  episode length flexes naturally rather than targeting a fixed runtime
+  (episodes so far have run anywhere from ~2 to ~8 minutes)
+- Single narrator throughout (no two-host conversational format), but each
+  category has its own distinct voice
 
-1. **Fetch** — pull new items from each configured RSS feed since the last
-   run
-2. **Filter / dedupe** — collapse near-duplicate coverage of the same
-   story, restrict to a recency window (e.g. last 24–48h)
-3. **Script generation** — turn filtered items into a spoken script
-   - Tier 1 stays short and factual
-   - Tier 2 gets more narrative treatment, but each segment is still a
-     single narrator speaking (no two-host conversational format)
-   - Each Tier 2 category gets its own distinct voice (e.g. one voice for
-     soccer/World Cup, another for tech/AI, another for NFL, etc.); Tier 1
-     uses its own consistent voice throughout
-4. **Audio** — convert the script to speech via TTS (Google Cloud
-   Text-to-Speech, Neural2 voices — 1M characters/month free), mapping each
-   segment to its assigned per-category voice
-5. **Publish** — output an MP3 and update an RSS feed XML with the new
-   episode (title, description, pubDate, audio enclosure URL + length,
-   duration)
-6. **Host** — the feed XML and MP3 files need a stable public URL for
-   podcast apps to poll; hosted via GitHub Pages (free static hosting,
-   nothing dynamic needed server-side)
-
-## Delivery
-
-Once the feed is live at a public URL, subscribe in Pocket Casts by
-pasting that feed URL directly (not via the built-in show directory).
-
-## Scheduling
-
-**Cadence: Monday through Friday** (weekdays only, no weekend episodes).
-
-Not automatic by default — the pipeline needs something to trigger it on
-that cadence. Options:
-
-- A cron job / scheduled task (e.g. weekday mornings)
-- Wired into existing automation infra (e.g. a scheduled Home Assistant
-  action or shell script) for a fully hands-off cadence
-- Manual run as a fallback whenever needed
-
-## Open items (to fill in before/during build)
-
-- [x] RSS feed URLs for general news digest, soccer/World Cup, tech/AI,
-      NFL, NWSL, WNBA — all tracked in [`feeds.yaml`](./feeds.yaml).
-      NWSL and WNBA currently share two general women's-sports sources
-      (Just Women's Sports, The Gist); dedicated feeds can be added later
-      if needed.
-- [x] Episode cadence — Monday through Friday
-- [x] Preferred TTS voice/provider — Google Cloud Text-to-Speech (Neural2
-      voices, free up to 1M characters/month), with a distinct voice per
-      Tier 2 category. Revisit ElevenLabs later if this becomes essential
-      and the more natural voice quality is worth paying for.
-- [x] Single narrator vs. two-host conversational format — single
-      narrator (no two-host conversational format)
-- [x] Preferred hosting target — GitHub Pages
-
-## Implementation
-
-The pipeline is a small Python package:
+## Architecture
 
 ```
-feeds.yaml            RSS sources per tier/category
-config/voices.yaml     Google Cloud TTS voice_name per tier/category
+feeds.yaml                RSS sources per tier/category
+config/voices.yaml         Google Cloud TTS voice per tier/category
 podcast/
-  config.py            env vars + config file loading
-  models.py             FeedItem / ScriptSegment dataclasses
-  fetch.py               pull + recency-filter each feed
-  dedupe.py               collapse near-duplicate stories (title similarity)
-  script.py                 build spoken scripts via the Anthropic API
-  tts.py                     Google Cloud TTS synthesis + mp3 concatenation (ffmpeg)
-  rss_feed.py                 rebuild docs/feed.xml from state/state.json
-  pipeline.py                  orchestrates the full run
-run.py                  entrypoint: `python run.py`
-state/state.json        seen item guids + published episode metadata
-docs/                   GitHub Pages root: feed.xml + episodes/*.mp3
-scripts/publish.sh       run pipeline, then git add/commit/push docs + state
+  config.py                env vars + config file loading
+  models.py                 FeedItem / ScriptSegment dataclasses
+  fetch.py                   pull + recency-filter each feed
+  dedupe.py                   collapse near-duplicate stories (title similarity)
+  script.py                    build spoken scripts via the Anthropic API
+  tts.py                         Google Cloud TTS synthesis + plain-byte MP3
+                                  concatenation (see "Why not ffmpeg" below)
+  rss_feed.py                    rebuild docs/feed.xml from state/state.json
+  pipeline.py                     orchestrates the full run, with progress logging
+run.py                      entrypoint: `python run.py`
+scripts/publish.sh           run pipeline, then git add/commit/push docs + state
+launchd/                     macOS scheduled-job definition (Mon-Fri, 6am)
+state/state.json             seen item guids + published episode metadata
+docs/                        GitHub Pages root: feed.xml + episodes/*.mp3
 ```
 
-### Setup
+## Setup (from scratch on a new machine)
 
 1. `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`
-2. Copy `.env.example` to `.env` and fill in `ANTHROPIC_API_KEY`,
-   `GOOGLE_TTS_API_KEY` (Google Cloud Console → enable "Cloud Text-to-Speech
-   API" → Credentials → API key), and `PODCAST_BASE_URL`.
-3. `config/voices.yaml` already has a distinct Neural2 voice per
-   tier/category — swap them for others from the
-   [voice list](https://cloud.google.com/text-to-speech/docs/voices) if
-   you want a different sound.
-4. In GitHub repo settings, enable **Pages** → deploy from branch `main`,
-   folder `/docs`. `PODCAST_BASE_URL` should match the resulting Pages URL.
+2. Copy `.env.example` to `.env` and fill in:
+   - `ANTHROPIC_API_KEY` — https://console.anthropic.com/settings/keys
+     (requires prepaid credits, no free tier; a few dollars covers a long
+     time at this usage level)
+   - `GOOGLE_TTS_API_KEY` — Google Cloud Console → enable "Cloud
+     Text-to-Speech API" → Credentials → **+ Create credentials → API
+     key** (not the service-account wizard). Free up to 1M characters/month.
+   - `PODCAST_BASE_URL` — the GitHub Pages URL this repo will be served
+     from, e.g. `https://<you>.github.io/<repo>`
+3. `config/voices.yaml` already has a distinct Google Neural2 voice
+   assigned per tier/category — swap any of them for a different one from
+   the [voice list](https://cloud.google.com/text-to-speech/docs/voices)
+   if you want a different sound.
+4. In GitHub repo settings → **Pages** → Source: Deploy from a branch →
+   branch `main`, folder `/docs` → Save.
 
-### Running
+## Running manually
 
 ```
-source .venv/bin/activate && set -a && source .env && set +a
+source .venv/bin/activate
+set -a && source .env && set +a
 python run.py
 ```
 
-This fetches new items, dedupes, generates scripts, synthesizes audio,
-writes `docs/episodes/<date>.mp3`, and rebuilds `docs/feed.xml`. It does
-**not** commit/push — use `scripts/publish.sh` for the full run-and-publish
-cycle (intended to be wired into cron/systemd-timer for the Monday–Friday
-cadence).
+Prints progress as it goes (fetching → scripts → TTS → stitching →
+publishing). Writes `docs/episodes/<date>.mp3` and rebuilds
+`docs/feed.xml`, but does **not** commit or push — that's what
+`scripts/publish.sh` is for.
 
-### Notes / caveats
+## Automation (the actual Mon-Fri schedule)
 
-- `dedupe.py` uses a title-similarity heuristic (no LLM call) to collapse
-  near-duplicate stories; it's intentionally simple and may need tuning once
-  real episodes are generated.
-- `state/state.json` is the source of truth for both "already seen" item
-  guids and the full episode list used to rebuild `feed.xml` — it's
-  committed to the repo (via `scripts/publish.sh`) so state persists across
-  runs without a separate database.
-- Feed fetching, script generation, and TTS all need real outbound network
-  access and valid API keys; none of that was exercised end-to-end during
-  scaffolding (dedupe logic and RSS generation were verified with sample
-  data instead).
+Runs via `launchd` on macOS — the plist is checked into
+[`launchd/com.ellewiz.personalized-news-podcast.plist`](./launchd/com.ellewiz.personalized-news-podcast.plist),
+fires weekdays at 6:00 AM.
+
+**Install on a Mac:**
+```
+mkdir -p logs
+cp launchd/com.ellewiz.personalized-news-podcast.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ellewiz.personalized-news-podcast.plist
+```
+
+**Test-fire it immediately** (don't wait for 6am to check it works):
+```
+launchctl start com.ellewiz.personalized-news-podcast
+cat logs/publish.log
+cat logs/publish.error.log
+```
+
+**Requirements for unattended runs to actually succeed:**
+- The Mac needs to be awake at 6am, or it runs whenever it next wakes.
+  System Settings → Battery → Power Adapter → enable "Prevent automatic
+  sleeping when the display is off" — the display can still turn off on
+  its own schedule, the system just stays awake underneath it.
+- The first `git push` will trigger a macOS keychain prompt for
+  `git-credential-osxkeychain` — click **Always Allow**, not just Allow,
+  or every future unattended run will hang waiting on a prompt nobody's
+  there to click.
+
+**To change the schedule:** edit the `Hour`/`Minute`/`Weekday` values in
+the plist, then re-run the `bootout` + `bootstrap` commands below to
+reload it:
+```
+launchctl bootout gui/$(id -u)/com.ellewiz.personalized-news-podcast
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ellewiz.personalized-news-podcast.plist
+```
+
+## Design notes and lessons learned
+
+**Why not ffmpeg for stitching segments together.** The original design
+used `ffmpeg` via `subprocess` to concatenate segment MP3s. On the actual
+deployment machine (Apple Silicon Mac, macOS 26), this reliably segfaulted
+— first the whole Python interpreter, then just the ffmpeg child process,
+across multiple different ffmpeg invocations. Root cause: macOS's Network
+and media frameworks are unsafe to use after `fork()` in a process that's
+already made HTTPS calls on other threads (which this process always has,
+via the Anthropic and Google TTS API calls) — a documented class of bug,
+not specific to this pipeline. Rather than keep patching around it, the
+fix was to drop ffmpeg entirely: Google Cloud TTS returns each segment as
+a plain MP3 frame stream with no container-level metadata, so raw byte
+concatenation of the files (`tts.concatenate_mp3s`) plays back correctly
+with no subprocess involved. One less dependency, and no crash surface.
+
+**Why Google Cloud TTS over ElevenLabs.** ElevenLabs sounds noticeably
+more natural, but costs money from the first minute of real use. Google's
+Neural2 voices are free up to 1M characters/month — comfortably covers a
+five-day-a-week cadence at this episode length — at the cost of
+occasionally awkward sentence breaks. If voice quality becomes the
+limiting factor, swapping providers is a contained change (`tts.py` +
+`config/voices.yaml` only — see git history for the ElevenLabs → Google
+swap as a template for doing it the other direction).
+
+**`dedupe.py`** uses a simple title-similarity heuristic (`difflib`, no
+LLM call) to collapse near-duplicate stories. Intentionally simple; may
+need tuning if it turns out to be too aggressive or not aggressive enough
+in practice.
+
+**`state/state.json`** is the source of truth for both "already seen"
+item guids (so the same story doesn't get covered twice) and the full
+episode list used to rebuild `feed.xml` from scratch on every run. It's
+committed to the repo (via `scripts/publish.sh`) so state persists across
+runs without a separate database.
+
+## Feeds and voices
+
+- All RSS sources: [`feeds.yaml`](./feeds.yaml)
+- All voice assignments: [`config/voices.yaml`](./config/voices.yaml)
+
+NWSL and WNBA currently share two general women's-sports sources (Just
+Women's Sports, The Gist) rather than having dedicated feeds — fine for
+now, revisit if coverage feels too generic.
+
+## Possible next steps
+
+- Dedicated NWSL/WNBA feeds instead of the shared general sources
+- Tune `dedupe.py`'s similarity threshold based on real episodes
+- Revisit ElevenLabs if Google's sentence-break quality becomes annoying
+- A simple no-app-required way to share episodes with non-technical
+  listeners (a web player page, rather than requiring a podcast app)
