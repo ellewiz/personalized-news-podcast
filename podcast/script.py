@@ -62,20 +62,28 @@ def _generate(prompt: str) -> str:
     return "".join(block.text for block in response.content if block.type == "text").strip()
 
 
-def build_tier1_segment(items: list[FeedItem], voice_id: str) -> ScriptSegment:
+def build_tier1_segment(items: list[FeedItem], voice_name: str, language_code: str) -> ScriptSegment:
     if not items:
         text = "No major headlines to cover today."
     else:
         text = _generate(TIER1_PROMPT.format(items=_items_block(items)))
-    return ScriptSegment(segment_key="tier1", voice_id=voice_id, text=text)
+    return ScriptSegment(
+        segment_key="tier1", voice_name=voice_name, language_code=language_code, text=text
+    )
 
 
 def build_tier2_segment(
-    category: str, category_label: str, items: list[FeedItem], voice_id: str
+    category: str,
+    category_label: str,
+    items: list[FeedItem],
+    voice_name: str,
+    language_code: str,
 ) -> ScriptSegment:
     if not items:
         text = f"Quiet news window for {category_label} today — nothing significant to report."
     else:
         prompt = TIER2_PROMPT.format(category_label=category_label, items=_items_block(items))
         text = _generate(prompt)
-    return ScriptSegment(segment_key=category, voice_id=voice_id, text=text)
+    return ScriptSegment(
+        segment_key=category, voice_name=voice_name, language_code=language_code, text=text
+    )

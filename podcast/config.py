@@ -17,7 +17,7 @@ RECENCY_WINDOW_HOURS = int(os.environ.get("RECENCY_WINDOW_HOURS", "36"))
 PODCAST_BASE_URL = os.environ.get("PODCAST_BASE_URL", "").rstrip("/")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5")
-ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY")
+GOOGLE_TTS_API_KEY = os.environ.get("GOOGLE_TTS_API_KEY")
 
 
 def load_feeds() -> dict:

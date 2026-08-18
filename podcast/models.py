@@ -16,5 +16,6 @@ class FeedItem:
 @dataclass
 class ScriptSegment:
     segment_key: str
-    voice_id: str
+    voice_name: str
+    language_code: str
     text: str

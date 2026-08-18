@@ -34,16 +34,21 @@ def run() -> Path:
         if category != "tier1"
     }
 
+    tier1_voice = voices["tier1"]
     segments: list[ScriptSegment] = [
-        script.build_tier1_segment(tier1_items, voices["tier1"]["voice_id"])
+        script.build_tier1_segment(
+            tier1_items, tier1_voice["voice_name"], tier1_voice["language_code"]
+        )
     ]
     for category, items in tier2_items.items():
+        category_voice = voices["tier2"][category]
         segments.append(
             script.build_tier2_segment(
                 category,
                 CATEGORY_LABELS.get(category, category),
                 items,
-                voices["tier2"][category]["voice_id"],
+                category_voice["voice_name"],
+                category_voice["language_code"],
             )
         )
 

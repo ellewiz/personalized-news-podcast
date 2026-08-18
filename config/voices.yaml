@@ -1,24 +1,31 @@
-# ElevenLabs voice assignments. Each entry needs a real ElevenLabs voice_id
-# (from https://elevenlabs.io/app/voice-library or your own custom voices).
-# voice_name is just a human-readable label for your own reference.
+# Google Cloud Text-to-Speech voice assignments — Neural2 voices (free tier:
+# 1M characters/month). Browse/preview the full list at
+# https://cloud.google.com/text-to-speech/docs/voices
+# voice_display_name is just a human-readable label for your own reference.
 
 tier1:
-  voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
-  voice_name: "TBD"
+  voice_name: "en-US-Neural2-C"
+  language_code: "en-US"
+  voice_display_name: "Tier 1 — general briefing"
 
 tier2:
   soccer_world_cup:
-    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
-    voice_name: "TBD"
+    voice_name: "en-US-Neural2-D"
+    language_code: "en-US"
+    voice_display_name: "Soccer / World Cup"
   tech_ai:
-    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
-    voice_name: "TBD"
+    voice_name: "en-US-Neural2-F"
+    language_code: "en-US"
+    voice_display_name: "Tech & AI"
   nfl:
-    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
-    voice_name: "TBD"
+    voice_name: "en-US-Neural2-A"
+    language_code: "en-US"
+    voice_display_name: "NFL"
   nwsl:
-    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
-    voice_name: "TBD"
+    voice_name: "en-US-Neural2-E"
+    language_code: "en-US"
+    voice_display_name: "NWSL"
   wnba:
-    voice_id: "REPLACE_WITH_ELEVENLABS_VOICE_ID"
-    voice_name: "TBD"
+    voice_name: "en-US-Neural2-G"
+    language_code: "en-US"
+    voice_display_name: "WNBA"

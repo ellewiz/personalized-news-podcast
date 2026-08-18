@@ -41,8 +41,9 @@ Two tiers per episode:
    - Each Tier 2 category gets its own distinct voice (e.g. one voice for
      soccer/World Cup, another for tech/AI, another for NFL, etc.); Tier 1
      uses its own consistent voice throughout
-4. **Audio** — convert the script to speech via TTS (ElevenLabs), mapping
-   each segment to its assigned per-category voice
+4. **Audio** — convert the script to speech via TTS (Google Cloud
+   Text-to-Speech, Neural2 voices — 1M characters/month free), mapping each
+   segment to its assigned per-category voice
 5. **Publish** — output an MP3 and update an RSS feed XML with the new
    episode (title, description, pubDate, audio enclosure URL + length,
    duration)
@@ -75,8 +76,10 @@ that cadence. Options:
       (Just Women's Sports, The Gist); dedicated feeds can be added later
       if needed.
 - [x] Episode cadence — Monday through Friday
-- [x] Preferred TTS voice/provider — ElevenLabs, with a distinct voice per
-      Tier 2 category
+- [x] Preferred TTS voice/provider — Google Cloud Text-to-Speech (Neural2
+      voices, free up to 1M characters/month), with a distinct voice per
+      Tier 2 category. Revisit ElevenLabs later if this becomes essential
+      and the more natural voice quality is worth paying for.
 - [x] Single narrator vs. two-host conversational format — single
       narrator (no two-host conversational format)
 - [x] Preferred hosting target — GitHub Pages
@@ -87,14 +90,14 @@ The pipeline is a small Python package:
 
 ```
 feeds.yaml            RSS sources per tier/category
-config/voices.yaml     ElevenLabs voice_id per tier/category (fill in real IDs)
+config/voices.yaml     Google Cloud TTS voice_name per tier/category
 podcast/
   config.py            env vars + config file loading
   models.py             FeedItem / ScriptSegment dataclasses
   fetch.py               pull + recency-filter each feed
   dedupe.py               collapse near-duplicate stories (title similarity)
   script.py                 build spoken scripts via the Anthropic API
-  tts.py                     ElevenLabs synthesis + mp3 concatenation (ffmpeg)
+  tts.py                     Google Cloud TTS synthesis + mp3 concatenation (ffmpeg)
   rss_feed.py                 rebuild docs/feed.xml from state/state.json
   pipeline.py                  orchestrates the full run
 run.py                  entrypoint: `python run.py`
@@ -109,9 +112,12 @@ scripts/publish.sh       run pipeline, then git add/commit/push docs + state
 2. Install [ffmpeg](https://ffmpeg.org/) (used to concatenate segment audio into
    one episode file).
 3. Copy `.env.example` to `.env` and fill in `ANTHROPIC_API_KEY`,
-   `ELEVENLABS_API_KEY`, and `PODCAST_BASE_URL`.
-4. Fill in real ElevenLabs `voice_id`s in `config/voices.yaml` (one per
-   tier/category — pick from your ElevenLabs voice library).
+   `GOOGLE_TTS_API_KEY` (Google Cloud Console → enable "Cloud Text-to-Speech
+   API" → Credentials → API key), and `PODCAST_BASE_URL`.
+4. `config/voices.yaml` already has a distinct Neural2 voice per
+   tier/category — swap them for others from the
+   [voice list](https://cloud.google.com/text-to-speech/docs/voices) if
+   you want a different sound.
 5. In GitHub repo settings, enable **Pages** → deploy from branch `main`,
    folder `/docs`. `PODCAST_BASE_URL` should match the resulting Pages URL.
 

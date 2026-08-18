@@ -1,3 +1,4 @@
+import base64
 import subprocess
 from pathlib import Path
 
@@ -7,27 +8,29 @@ from mutagen.mp3 import MP3
 from . import config
 from .models import ScriptSegment
 
-ELEVENLABS_TTS_URL = "https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+GOOGLE_TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize"
 
 
 def synthesize_segment(segment: ScriptSegment, out_path: Path) -> Path:
-    if not config.ELEVENLABS_API_KEY:
-        raise RuntimeError("ELEVENLABS_API_KEY is not set")
+    if not config.GOOGLE_TTS_API_KEY:
+        raise RuntimeError("GOOGLE_TTS_API_KEY is not set")
 
     response = requests.post(
-        ELEVENLABS_TTS_URL.format(voice_id=segment.voice_id),
-        headers={
-            "xi-api-key": config.ELEVENLABS_API_KEY,
-            "Content-Type": "application/json",
-        },
+        GOOGLE_TTS_URL,
+        params={"key": config.GOOGLE_TTS_API_KEY},
         json={
-            "text": segment.text,
-            "model_id": "eleven_multilingual_v2",
+            "input": {"text": segment.text},
+            "voice": {
+                "languageCode": segment.language_code,
+                "name": segment.voice_name,
+            },
+            "audioConfig": {"audioEncoding": "MP3"},
         },
         timeout=120,
     )
     response.raise_for_status()
-    out_path.write_bytes(response.content)
+    audio_content_b64 = response.json()["audioContent"]
+    out_path.write_bytes(base64.b64decode(audio_content_b64))
     return out_path
 
 
