@@ -12,6 +12,14 @@ Casts, Apple Podcasts, Overcast, etc.):
 https://ellewiz.github.io/personalized-news-podcast/feed.xml
 ```
 
+For anyone who doesn't want to deal with a podcast app, there's also a
+plain web player with no app or account required — just open the link and
+press play:
+
+```
+https://ellewiz.github.io/personalized-news-podcast/
+```
+
 ## What it actually does
 
 Every weekday morning, without anyone touching a keyboard:
@@ -65,6 +73,7 @@ podcast/
   tts.py                         Google Cloud TTS synthesis + plain-byte MP3
                                   concatenation (see "Why not ffmpeg" below)
   rss_feed.py                    rebuild docs/feed.xml from state/state.json
+  web_player.py                   rebuild docs/index.html, a no-app-required player
   pipeline.py                     orchestrates the full run, with progress logging
 run.py                      entrypoint: `python run.py`
 scripts/publish.sh           run pipeline, then git add/commit/push docs + state
@@ -193,5 +202,3 @@ now, revisit if coverage feels too generic.
 - Dedicated NWSL/WNBA feeds instead of the shared general sources
 - Tune `dedupe.py`'s similarity threshold based on real episodes
 - Revisit ElevenLabs if Google's sentence-break quality becomes annoying
-- A simple no-app-required way to share episodes with non-technical
-  listeners (a web player page, rather than requiring a podcast app)
