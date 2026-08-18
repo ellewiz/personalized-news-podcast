@@ -1,0 +1,6 @@
+file '/Users/ellewiz/personalized-news-podcast/docs/episodes/.tmp-2026-08-18/00-tier1.mp3'
+file '/Users/ellewiz/personalized-news-podcast/docs/episodes/.tmp-2026-08-18/01-soccer_world_cup.mp3'
+file '/Users/ellewiz/personalized-news-podcast/docs/episodes/.tmp-2026-08-18/02-tech_ai.mp3'
+file '/Users/ellewiz/personalized-news-podcast/docs/episodes/.tmp-2026-08-18/03-nfl.mp3'
+file '/Users/ellewiz/personalized-news-podcast/docs/episodes/.tmp-2026-08-18/04-nwsl.mp3'
+file '/Users/ellewiz/personalized-news-podcast/docs/episodes/.tmp-2026-08-18/05-wnba.mp3'
