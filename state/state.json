@@ -29,6 +29,7 @@
     "https://justwomenssports.com/?p=38413",
     "https://justwomenssports.com/?p=38418",
     "https://justwomenssports.com/?p=38423",
+    "https://www.bbc.co.uk/news/articles/c4g3qdj1z77o#0",
     "https://www.bbc.co.uk/news/articles/c4g4r0mrmlpo#1",
     "https://www.bbc.co.uk/news/articles/c74gekjgrllo#1",
     "https://www.bbc.co.uk/news/articles/c77gg5vn44yo#1",
@@ -39,18 +40,23 @@
     "https://www.bbc.co.uk/news/articles/cg4dd420ezlo#1",
     "https://www.bbc.co.uk/news/articles/cj4kjnle2neo#0",
     "https://www.bbc.co.uk/news/articles/cj9dx03jrgjo#0",
+    "https://www.bbc.co.uk/news/articles/cj9dx03jrgjo#2",
     "https://www.bbc.co.uk/news/articles/cn0nj3ln8r5o#1",
     "https://www.bbc.co.uk/news/articles/cn7n4lm11vro#0",
+    "https://www.bbc.co.uk/news/articles/cn7n4lm11vro#1",
     "https://www.bbc.co.uk/news/articles/cq5665zgg1po#0",
     "https://www.bbc.co.uk/news/articles/crl7686r71yo#1",
     "https://www.bbc.co.uk/news/articles/cvgll74vvydo#1",
     "https://www.bbc.co.uk/news/articles/cvgww971nn2o#1",
     "https://www.bbc.co.uk/news/articles/cx2lll7zvn0o#1",
     "https://www.bbc.co.uk/news/articles/cx2rzx5g5yro#0",
+    "https://www.bbc.co.uk/news/articles/cx2rzx5g5yro#1",
     "https://www.bbc.co.uk/news/articles/cy0j2r15dr1o#2",
+    "https://www.bbc.co.uk/news/articles/cy5dz0kkn0wo#0",
     "https://www.bbc.co.uk/news/articles/cy5dzk0ryzdo#0",
     "https://www.bbc.co.uk/news/videos/c8dnn05e90lo#3",
     "https://www.bbc.co.uk/news/videos/cj4kglpl55lo#3",
+    "https://www.bbc.co.uk/news/videos/cy45zjw424xo#0",
     "https://www.bleedinggreennation.com/?p=179588",
     "https://www.bleedinggreennation.com/?p=179591",
     "https://www.bleedinggreennation.com/?p=179614",
@@ -97,6 +103,15 @@
       "audio_url": "https://ellewiz.github.io/personalized-news-podcast/episodes/2026-08-18.mp3",
       "file_size": 4025664,
       "duration_seconds": 503
+    },
+    {
+      "guid": "22550b28-7d43-43db-95bf-422a61dde14e",
+      "title": "Daily Briefing \u2014 2026-08-18",
+      "description": "Your personalized news and sports briefing.",
+      "pub_date": "2026-08-18T01:55:17.874827+00:00",
+      "audio_url": "https://ellewiz.github.io/personalized-news-podcast/episodes/2026-08-18.mp3",
+      "file_size": 639552,
+      "duration_seconds": 79
     }
   ]
 }
