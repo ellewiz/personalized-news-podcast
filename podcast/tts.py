@@ -4,7 +4,7 @@ from pathlib import Path
 import requests
 from mutagen.mp3 import MP3
 
-from . import config
+from . import config, pronunciation
 from .models import ScriptSegment
 
 GOOGLE_TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize"
@@ -18,7 +18,7 @@ def synthesize_segment(segment: ScriptSegment, out_path: Path) -> Path:
         GOOGLE_TTS_URL,
         params={"key": config.GOOGLE_TTS_API_KEY},
         json={
-            "input": {"text": segment.text},
+            "input": {"ssml": pronunciation.to_ssml(segment.text)},
             "voice": {
                 "languageCode": segment.language_code,
                 "name": segment.voice_name,
