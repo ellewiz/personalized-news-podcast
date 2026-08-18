@@ -77,7 +77,7 @@ def run() -> Path:
         tts.synthesize_segment(segment, segment_path)
         segment_paths.append(segment_path)
 
-    _log("Stitching segments into one episode file (ffmpeg)...")
+    _log("Stitching segments into one episode file...")
     config.EPISODES_DIR.mkdir(parents=True, exist_ok=True)
     episode_filename = f"{episode_id}.mp3"
     episode_path = config.EPISODES_DIR / episode_filename
