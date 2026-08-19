@@ -241,8 +241,7 @@ runs without a separate database.
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)
 - All voice assignments: [`config/voices.yaml`](./config/voices.yaml)
 
-NWSL and WNBA each now have a dedicated feed (The Equalizer, and The Next
-+ ESPN WNBA respectively) alongside the two shared general women's-sports
+NWSL and WNBA each now have a dedicated feed (The Equalizer, and The Next + ESPN WNBA respectively) alongside the two shared general women's-sports
 sources (Just Women's Sports, The Gist).
 
 ## Possible next steps
