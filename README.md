@@ -70,8 +70,9 @@ podcast/
   fetch.py                   pull + recency-filter each feed
   dedupe.py                   collapse near-duplicate stories (title similarity)
   script.py                    build spoken scripts via the Anthropic API
-  tts.py                         Google Cloud TTS synthesis + plain-byte MP3
-                                  concatenation (see "Why not ffmpeg" below)
+  pronunciation.py               word -> spoken-alias overrides for TTS
+  tts.py                          Google Cloud TTS synthesis + plain-byte MP3
+                                   concatenation (see "Why not ffmpeg" below)
   rss_feed.py                    rebuild docs/feed.xml from state/state.json
   web_player.py                   rebuild docs/index.html, a no-app-required player
   pipeline.py                     orchestrates the full run, with progress logging
@@ -181,6 +182,12 @@ swap as a template for doing it the other direction).
 LLM call) to collapse near-duplicate stories. Intentionally simple; may
 need tuning if it turns out to be too aggressive or not aggressive enough
 in practice.
+
+**Mispronounced words.** Google's TTS gets some words wrong (e.g. read
+"Kyiv" as "Keev" — technically correct, but unrecognizable out of
+context). Fix: add an entry to the `PRONUNCIATIONS` dict in
+`podcast/pronunciation.py` — `"Kyiv": "Kee-ev"` means "whenever this word
+appears, say it like this instead." No other changes needed.
 
 **`state/state.json`** is the source of truth for both "already seen"
 item guids (so the same story doesn't get covered twice) and the full
