@@ -24,8 +24,8 @@ https://ellewiz.github.io/personalized-news-podcast/
 
 Every weekday morning, without anyone touching a keyboard:
 
-1. Pulls fresh items from a set of RSS feeds (general news + five sports/
-   tech categories)
+1. Pulls fresh items from a set of RSS feeds (general news, plus Markets,
+   Tech & AI, Soccer/World Cup, NFL, NWSL, and WNBA)
 2. Dedupes near-identical coverage of the same story
 3. Writes a spoken script per segment via the Anthropic API
 4. Synthesizes each segment as audio via Google Cloud Text-to-Speech, with
@@ -277,3 +277,22 @@ NWSL and WNBA each now have a dedicated feed (The Equalizer, and The Next, along
   instead of a plain Mon-Fri check in the launchd schedule
 - Local politics category (feeds TBD — user is strong on national news,
   wants better local coverage for their area)
+- **Storage ceiling** (flagged by a friend who saw the repo): GitHub
+  Pages soft-caps published sites at 1GB. Today's episode alone is
+  ~7.7MB, and `.git` is already 20MB after just a few days — at that
+  rate this repo has a runway of roughly 6 months before hitting the
+  cap, not urgent tonight but real. Two separable problems: (1) what's
+  *served* (fixable by pruning old episodes from `docs/episodes/` +
+  `feed.xml` going forward — nobody's relistening to a random Tuesday
+  from 3 months back anyway), and (2) `.git` history itself growing
+  forever even after files are deleted, since old commits still
+  reference every blob ever committed (git doesn't actually forget
+  until history is rewritten). Worth a real look at Git LFS or hosting
+  episode audio outside git entirely (e.g. object storage) before this
+  becomes a real problem rather than after.
+- **Local/free TTS**: a friend pointed at
+  [OHF-Voice/piper1-gpl](https://github.com/OHF-Voice/piper1-gpl) —
+  runs locally, no API key, no per-character cost at all (vs. Google's
+  free-tier-then-metered model). Worth a quality comparison against
+  Google's Neural2 voices if TTS cost or the network dependency ever
+  becomes a real concern.
