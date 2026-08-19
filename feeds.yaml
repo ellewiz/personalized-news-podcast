@@ -19,6 +19,8 @@ tier1_general_news:
     url: https://www.rferl.org/api/
   - name: ProPublica
     url: https://www.propublica.org/feeds/propublica/main
+  - name: The Atlantic — Politics
+    url: https://www.theatlantic.com/feed/channel/politics/
 
 tier2:
   markets:
