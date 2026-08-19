@@ -249,3 +249,8 @@ sources (Just Women's Sports, The Gist).
 
 - Tune `dedupe.py`'s similarity threshold based on real episodes
 - Revisit ElevenLabs if Google's sentence-break quality becomes annoying
+- **v2**: Skip publishing on NYSE holidays (work's actual closure calendar),
+  using the [`holidays`](https://pypi.org/project/holidays/) package
+  instead of a plain Mon-Fri check in the launchd schedule
+- Local politics category (feeds TBD — user is strong on national news,
+  wants better local coverage for their area)
