@@ -15,8 +15,13 @@ tier1_general_news:
     url: https://www.vox.com/rss/world/index.xml
   - name: France 24
     url: https://www.france24.com/en/rss
+  - name: Radio Free Europe/Radio Liberty
+    url: https://www.rferl.org/api/
 
 tier2:
+  markets:
+    - name: Bloomberg Markets
+      url: https://feeds.bloomberg.com/markets/news.rss
   soccer_world_cup:
     - name: The Independent — World Cup
       url: http://www.independent.co.uk/sport/football/world-cup/rss

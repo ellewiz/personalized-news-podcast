@@ -9,6 +9,10 @@ tier1:
   voice_display_name: "Tier 1 — general briefing"
 
 tier2:
+  markets:
+    voice_name: "en-US-Neural2-H"
+    language_code: "en-US"
+    voice_display_name: "Markets"
   soccer_world_cup:
     voice_name: "en-US-Neural2-D"
     language_code: "en-US"

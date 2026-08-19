@@ -40,23 +40,29 @@ Two tiers per episode:
 
 ### Tier 1 — Brief awareness (target: well under a minute)
 
-- Pulled from six general-news feeds (PBS NewsHour, UPI Top News, BBC
-  World News, NBC News, Vox World, France 24 — see
-  [`feeds.yaml`](./feeds.yaml))
+- Pulled from seven general-news feeds (PBS NewsHour, UPI Top News, BBC
+  World News, NBC News, Vox World, France 24, Radio Free Europe/Radio
+  Liberty — see [`feeds.yaml`](./feeds.yaml))
 - A handful of sentences covering the top headlines
 - Goal: "aware, not drowning" — never stacks multiple articles about the
   same single story
 
 ### Tier 2 — Deep dive (the bulk of the episode)
 
-Segment order: **Tech & AI**, then all sports grouped together —
-**Soccer/World Cup, NFL, NWSL, WNBA**, straight after Tier 1.
+Segment order, straight after Tier 1: **Markets**, **Tech & AI**, then all
+sports grouped together — **Soccer/World Cup, NFL, NWSL, WNBA**.
 
 - Each category pulls from its own feed(s) (see [`feeds.yaml`](./feeds.yaml))
 - Depth scales with how much actually happened — a quiet window for a
   given category gets a one-line mention instead of padded filler, so
   episode length flexes naturally rather than targeting a fixed runtime
   (episodes so far have run anywhere from ~2 to ~8 minutes)
+- **Markets is the one exception**: capped at the 2-3 biggest stories
+  regardless of volume, rather than scaling with how much happened (see
+  `CATEGORY_PREFERENCES` in `podcast/pipeline.py`)
+- **NFL** is steered toward Philadelphia Eagles headlines specifically and
+  told to skip betting lines/odds entirely — same mechanism, different
+  category (also in `CATEGORY_PREFERENCES`)
 - Single narrator throughout (no two-host conversational format), but each
   category has its own distinct voice
 

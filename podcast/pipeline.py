@@ -6,6 +6,7 @@ from . import config, dedupe, fetch, rss_feed, script, state as state_module, tt
 from .models import ScriptSegment
 
 CATEGORY_LABELS = {
+    "markets": "Markets",
     "soccer_world_cup": "Soccer and the World Cup",
     "tech_ai": "Tech and AI",
     "nfl": "the NFL",
@@ -13,11 +14,16 @@ CATEGORY_LABELS = {
     "wnba": "the WNBA",
 }
 
-# Segment order: tech/AI right after Tier 1, then all sports grouped together.
-CATEGORY_ORDER = ["tech_ai", "soccer_world_cup", "nfl", "nwsl", "wnba"]
+# Segment order: markets right after Tier 1, then tech/AI, then all sports grouped together.
+CATEGORY_ORDER = ["markets", "tech_ai", "soccer_world_cup", "nfl", "nwsl", "wnba"]
 
 # Optional per-category listener preferences, folded into the script prompt.
 CATEGORY_PREFERENCES = {
+    "markets": (
+        "Cover ONLY the 2 biggest stories, 3 at most — do not try to cover everything "
+        "even if there's a lot of market news. Pick the single most significant items "
+        "and skip the rest entirely, no matter how much is in the list below."
+    ),
     "nfl": (
         "Prioritize major headlines and storylines about the Philadelphia Eagles "
         "specifically. Skip betting lines, odds, or prop bets entirely — not of interest."
