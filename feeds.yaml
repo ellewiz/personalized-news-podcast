@@ -9,6 +9,10 @@ tier1_general_news:
     url: https://rss.upi.com/news/tn_us.rss
   - name: BBC World News
     url: https://feeds.bbci.co.uk/news/world/rss.xml
+  - name: CBS News
+    url: https://www.cbsnews.com/latest/rss/main
+  - name: NBC News
+    url: http://feeds.nbcnews.com/nbcnews/public/news
 
 tier2:
   soccer_world_cup:
@@ -25,6 +29,10 @@ tier2:
       url: https://www.theverge.com/rss/index.xml
     - name: Ars Technica
       url: https://feeds.arstechnica.com/arstechnica/index
+    - name: CBS News Technology
+      url: https://www.cbsnews.com/latest/rss/technology
+    - name: ABC News Technology
+      url: https://abcnews.go.com/abcnews/technologyheadlines
   nfl:
     - name: ESPN NFL News
       url: https://www.espn.com/espn/rss/nfl/news

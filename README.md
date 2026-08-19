@@ -40,8 +40,8 @@ Two tiers per episode:
 
 ### Tier 1 — Brief awareness (target: well under a minute)
 
-- Pulled from three general-news digest feeds (PBS NewsHour, UPI Top News,
-  BBC World News — see [`feeds.yaml`](./feeds.yaml))
+- Pulled from five general-news feeds (PBS NewsHour, UPI Top News, BBC
+  World News, CBS News, NBC News — see [`feeds.yaml`](./feeds.yaml))
 - A handful of sentences covering the top headlines
 - Goal: "aware, not drowning" — never stacks multiple articles about the
   same single story
