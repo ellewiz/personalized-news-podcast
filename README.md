@@ -110,7 +110,7 @@ podcast/
   fetch.py                   pull + recency-filter each feed
   dedupe.py                   collapse near-duplicate stories (title similarity)
   script.py                    build spoken scripts via the Anthropic API
-  pronunciation.py               word -> spoken-alias overrides for TTS
+  pronunciation.py               word -> spoken-alias / spell-out overrides for TTS
   weather.py                      National Weather Service API (closing segment)
   tts.py                          Google Cloud TTS synthesis + plain-byte MP3
                                    concatenation (see "Why not ffmpeg" below)
@@ -122,6 +122,8 @@ scripts/publish.sh           run pipeline, then git add/commit/push docs + state
 launchd/                     macOS scheduled-job definition (Mon-Fri, 6am)
 state/state.json             seen item guids + published episode metadata
 docs/                        GitHub Pages root: feed.xml + episodes/*.mp3
+                              (each episode also gets a *-script.txt transcript,
+                              not published prominently but kept in the repo)
 ```
 
 ## Setup (from scratch on a new machine)
@@ -228,7 +230,30 @@ in practice.
 "Kyiv" as "Keev" — technically correct, but unrecognizable out of
 context). Fix: add an entry to the `PRONUNCIATIONS` dict in
 `podcast/pronunciation.py` — `"Kyiv": "Kee-ev"` means "whenever this word
-appears, say it like this instead." No other changes needed.
+appears, say it like this instead." For acronyms that get read as a word
+instead of spelled out (e.g. "AI" read as "eye"), add the bare word to
+the `SPELL_OUT` set instead — that uses SSML's character-by-character
+mode rather than a text substitution. No other changes needed either way.
+
+**Broadcast-time grounding.** Early episodes sometimes parroted a source
+article's own time-of-day language ("this morning," "good evening")
+verbatim, or blurred together events from different time zones (e.g.
+implying an Asian market session was concurrent with a US session that
+hadn't opened yet) — because the script prompts had no idea what time the
+episode was actually being generated for. Fixed by computing the actual
+broadcast time (Eastern, DST-aware) once per run in `pipeline.py` and
+passing it into every Tier 1/Tier 2 prompt, with explicit rules against
+copying stale time framing or inventing greetings. The Markets category
+also got an explicit instruction to call out which market session an item
+refers to, since it airs before the US market even opens.
+
+**Script transcripts.** Every run writes
+`docs/episodes/<date>-script.txt` — the full generated text for every
+segment, plus the broadcast time used. Generated audio has no easy way to
+go back and check "what did it actually say," so this exists purely so a
+listener-reported issue (a factual mix-up, confusing phrasing, whatever)
+can be traced to the actual text instead of being unrecoverable once the
+audio's already made.
 
 **`state/state.json`** is the source of truth for both "already seen"
 item guids (so the same story doesn't get covered twice) and the full

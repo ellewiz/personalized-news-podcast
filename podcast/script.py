@@ -20,7 +20,9 @@ def _items_block(items: list[FeedItem]) -> str:
 
 
 TIER1_PROMPT = """You are writing the "brief awareness" opening segment of a daily news \
-podcast. Using ONLY the headlines below, write a short spoken-word script.
+podcast. This episode is being generated and published at {broadcast_time} — the listener \
+will hear it shortly after that. Using ONLY the headlines below, write a short spoken-word \
+script.
 
 Rules:
 - Total runtime target: well under 1 minute (roughly 100-130 words).
@@ -29,6 +31,13 @@ Rules:
 multiple articles about one story.
 - Plain, factual, spoken-audio tone. No headings, no bullet points, no markdown — \
 just the words to be read aloud.
+- Do NOT copy time-of-day words ("this morning", "tonight", "good evening", etc.) \
+straight from a headline or summary — those were written by the source at whatever time \
+THEY published, which is not the broadcast time above. If timing matters, describe it \
+relative to the broadcast time (e.g. "overnight," "earlier today") instead of assuming \
+the source's framing still applies.
+- Never invent a greeting ("good morning," "good evening") — this is a news segment, \
+not a personal address.
 
 Headlines:
 {items}
@@ -36,7 +45,9 @@ Headlines:
 Write only the script text, nothing else."""
 
 TIER2_PROMPT = """You are writing the "{category_label}" deep-dive segment of a daily \
-news podcast. Using ONLY the items below, write a spoken-word script for this segment.
+news podcast. This episode is being generated and published at {broadcast_time} — the \
+listener will hear it shortly after that, and this segment runs mid-episode, not as a \
+fresh opening. Using ONLY the items below, write a spoken-word script for this segment.
 
 Rules:
 - Narrative, engaging tone, but spoken by a SINGLE narrator — this is not a dialogue \
@@ -45,6 +56,15 @@ between two hosts, so don't write it as a conversation or use multiple speaker l
 properly; if there's very little, give it a short mention rather than padding it out.
 - Collapse near-duplicate coverage of the same story into one mention.
 - No headings, no bullet points, no markdown — just the words to be read aloud.
+- Do NOT copy time-of-day words ("this morning", "tonight", "good evening", etc.) \
+straight from a headline or summary — those were written by the source at whatever time \
+THEY published, which is not the broadcast time above. If an item concerns a different \
+time zone (e.g. an overseas market or event), say so explicitly rather than implying it's \
+happening "now" relative to the broadcast time — e.g. note that an Asian market session \
+already closed hours earlier, rather than treating it as concurrent with a US session \
+that hasn't opened yet.
+- Never open with a greeting ("good morning," "good evening") — this segment continues \
+mid-episode, it is not a fresh start.
 {preferences_block}
 Items:
 {items}
@@ -79,11 +99,13 @@ def _generate(prompt: str) -> str:
     return "".join(block.text for block in response.content if block.type == "text").strip()
 
 
-def build_tier1_segment(items: list[FeedItem], voice_name: str, language_code: str) -> ScriptSegment:
+def build_tier1_segment(
+    items: list[FeedItem], voice_name: str, language_code: str, broadcast_time: str
+) -> ScriptSegment:
     if not items:
         text = "No major headlines to cover today."
     else:
-        text = _generate(TIER1_PROMPT.format(items=_items_block(items)))
+        text = _generate(TIER1_PROMPT.format(items=_items_block(items), broadcast_time=broadcast_time))
     return ScriptSegment(
         segment_key="tier1", voice_name=voice_name, language_code=language_code, text=text
     )
@@ -95,6 +117,7 @@ def build_tier2_segment(
     items: list[FeedItem],
     voice_name: str,
     language_code: str,
+    broadcast_time: str,
     preferences: str = "",
 ) -> ScriptSegment:
     if not items:
@@ -105,6 +128,7 @@ def build_tier2_segment(
             category_label=category_label,
             items=_items_block(items),
             preferences_block=preferences_block,
+            broadcast_time=broadcast_time,
         )
         text = _generate(prompt)
     return ScriptSegment(

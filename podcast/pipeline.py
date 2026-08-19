@@ -1,9 +1,14 @@
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from . import config, dedupe, fetch, rss_feed, script, state as state_module, tts, weather, web_player
 from .models import ScriptSegment
+
+# The actual listening context (Skillman, NJ) — used to ground scripts in real
+# broadcast time so they don't parrot a source article's own time-of-day framing.
+BROADCAST_TZ = ZoneInfo("America/New_York")
 
 CATEGORY_LABELS = {
     "markets": "Markets",
@@ -22,7 +27,11 @@ CATEGORY_PREFERENCES = {
     "markets": (
         "Cover ONLY the 2 biggest stories, 3 at most — do not try to cover everything "
         "even if there's a lot of market news. Pick the single most significant items "
-        "and skip the rest entirely, no matter how much is in the list below."
+        "and skip the rest entirely, no matter how much is in the list below. This "
+        "airs before the US market opens — be explicit about which session/market each "
+        "item refers to (e.g. an Asian market's session ended hours ago and is not "
+        "concurrent with a US session that hasn't started yet); never imply everything "
+        "is happening 'today' in the same sense."
     ),
     "nfl": (
         "Prioritize major headlines and storylines about the Philadelphia Eagles "
@@ -48,6 +57,9 @@ def run() -> Path:
     app_state = state_module.load_state()
     seen_guids = set(app_state["seen_guids"])
 
+    episode_date = datetime.now(timezone.utc)
+    broadcast_time = episode_date.astimezone(BROADCAST_TZ).strftime("%A, %B %-d, %Y at %-I:%M %p %Z")
+
     _log("Fetching feeds...")
     fetched = fetch.fetch_all(feeds, seen_guids)
     for key, items in fetched.items():
@@ -66,7 +78,7 @@ def run() -> Path:
     _log("  tier1...")
     segments: list[ScriptSegment] = [
         script.build_tier1_segment(
-            tier1_items, tier1_voice["voice_name"], tier1_voice["language_code"]
+            tier1_items, tier1_voice["voice_name"], tier1_voice["language_code"], broadcast_time
         )
     ]
     for category in CATEGORY_ORDER:
@@ -80,6 +92,7 @@ def run() -> Path:
                 items,
                 category_voice["voice_name"],
                 category_voice["language_code"],
+                broadcast_time,
                 preferences=CATEGORY_PREFERENCES.get(category, ""),
             )
         )
@@ -101,10 +114,19 @@ def run() -> Path:
         # Weather is a nice-to-have closer, not worth failing the whole episode over.
         _log(f"  weather segment skipped ({exc})")
 
-    episode_date = datetime.now(timezone.utc)
     episode_id = episode_date.strftime("%Y-%m-%d")
     work_dir = config.EPISODES_DIR / f".tmp-{episode_id}"
     work_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save the full script text so a listener-reported issue (mispronunciation,
+    # confusing phrasing, factual mix-up) can actually be traced back to what was
+    # generated, instead of being unrecoverable once the audio's already made.
+    config.EPISODES_DIR.mkdir(parents=True, exist_ok=True)
+    transcript_path = config.EPISODES_DIR / f"{episode_id}-script.txt"
+    transcript_path.write_text(
+        f"Broadcast time: {broadcast_time}\n\n"
+        + "\n\n".join(f"=== {s.segment_key} ===\n{s.text}" for s in segments)
+    )
 
     _log("Synthesizing audio (calls the Google TTS API, one per segment)...")
     segment_paths = []
