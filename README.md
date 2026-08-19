@@ -200,12 +200,11 @@ runs without a separate database.
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)
 - All voice assignments: [`config/voices.yaml`](./config/voices.yaml)
 
-NWSL and WNBA currently share two general women's-sports sources (Just
-Women's Sports, The Gist) rather than having dedicated feeds — fine for
-now, revisit if coverage feels too generic.
+NWSL and WNBA each now have a dedicated feed (The Equalizer, and The Next
++ ESPN WNBA respectively) alongside the two shared general women's-sports
+sources (Just Women's Sports, The Gist).
 
 ## Possible next steps
 
-- Dedicated NWSL/WNBA feeds instead of the shared general sources
 - Tune `dedupe.py`'s similarity threshold based on real episodes
 - Revisit ElevenLabs if Google's sentence-break quality becomes annoying

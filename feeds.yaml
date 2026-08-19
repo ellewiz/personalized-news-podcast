@@ -14,21 +14,37 @@ tier2:
   soccer_world_cup:
     - name: The Independent — World Cup
       url: http://www.independent.co.uk/sport/football/world-cup/rss
+    - name: BBC Sport — Football
+      url: https://feeds.bbci.co.uk/sport/football/rss.xml
+    - name: ESPN Soccer
+      url: https://www.espn.com/espn/rss/soccer/news
   tech_ai:
     - name: Daring Fireball
       url: https://daringfireball.net/feeds/main
+    - name: The Verge
+      url: https://www.theverge.com/rss/index.xml
+    - name: Ars Technica
+      url: https://feeds.arstechnica.com/arstechnica/index
   nfl:
     - name: ESPN NFL News
       url: https://www.espn.com/espn/rss/nfl/news
     - name: Bleeding Green Nation (Philadelphia Eagles)
       url: https://www.bleedinggreennation.com/rss/index.xml
+    - name: Pro Football Talk
+      url: https://profootballtalk.nbcsports.com/feed/
   nwsl:
     - name: Just Women's Sports
       url: https://justwomenssports.com/feed/
     - name: The Gist — Daily Sports
       url: https://www.thegistsports.com/rss-daily-sports.xml
+    - name: The Equalizer
+      url: https://equalizersoccer.com/feed/
   wnba:
     - name: Just Women's Sports
       url: https://justwomenssports.com/feed/
     - name: The Gist — Daily Sports
       url: https://www.thegistsports.com/rss-daily-sports.xml
+    - name: The Next — WNBA
+      url: https://thenexthoops.com/category/wnba/feed/
+    - name: ESPN WNBA
+      url: https://www.espn.com/espn/rss/wnba/news
