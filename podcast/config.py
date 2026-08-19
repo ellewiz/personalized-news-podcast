@@ -19,6 +19,11 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5")
 GOOGLE_TTS_API_KEY = os.environ.get("GOOGLE_TTS_API_KEY")
 
+# Defaults to Skillman, NJ 08558 (workplace). Override via env vars if needed.
+WEATHER_LAT = float(os.environ.get("WEATHER_LAT", "40.408516"))
+WEATHER_LON = float(os.environ.get("WEATHER_LON", "-74.694682"))
+WEATHER_LOCATION_LABEL = os.environ.get("WEATHER_LOCATION_LABEL", "Skillman, New Jersey")
+
 
 def load_feeds() -> dict:
     with open(FEEDS_PATH) as f:

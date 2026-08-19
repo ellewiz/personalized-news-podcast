@@ -67,6 +67,16 @@ sports grouped together — **Soccer/World Cup, NFL, NWSL, WNBA**.
 - Single narrator throughout (no two-host conversational format), but each
   category has its own distinct voice
 
+### Weather — closing sign-off
+
+Local TV newscast convention: weather comes last, after the sports. Pulls
+today's forecast from the **National Weather Service API**
+(`api.weather.gov`) — free, no signup, no API key, official U.S.
+government data — for Skillman, NJ 08558 by default (configurable via
+`WEATHER_LAT`/`WEATHER_LON`/`WEATHER_LOCATION_LABEL` in `.env`). If the
+weather API is unavailable, the segment is skipped rather than failing the
+whole episode.
+
 ## Architecture
 
 ```
@@ -79,6 +89,7 @@ podcast/
   dedupe.py                   collapse near-duplicate stories (title similarity)
   script.py                    build spoken scripts via the Anthropic API
   pronunciation.py               word -> spoken-alias overrides for TTS
+  weather.py                      National Weather Service API (closing segment)
   tts.py                          Google Cloud TTS synthesis + plain-byte MP3
                                    concatenation (see "Why not ffmpeg" below)
   rss_feed.py                    rebuild docs/feed.xml from state/state.json

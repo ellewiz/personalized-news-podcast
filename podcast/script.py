@@ -52,6 +52,23 @@ Items:
 Write only the script text, nothing else."""
 
 
+WEATHER_PROMPT = """You are writing the closing weather segment of a daily news podcast \
+— the classic "and now, the weather" sign-off that comes last, after the sports, the way \
+local TV newscasts close out. Using ONLY the forecast details below, write a short spoken \
+weather report for {location_label}.
+
+Rules:
+- Brief: 2-4 sentences, roughly 30-50 words.
+- Plain, factual, spoken-audio tone.
+- End on a short, natural sign-off line (e.g. wishing the listener a good day or commute).
+- No headings, no bullet points, no markdown — just the words to be read aloud.
+
+Forecast for {period_name}: {short_forecast}. High of {temperature} degrees \
+{temperature_unit}. {detailed_forecast}
+
+Write only the script text, nothing else."""
+
+
 def _generate(prompt: str) -> str:
     client = _get_client()
     response = client.messages.create(
@@ -92,4 +109,14 @@ def build_tier2_segment(
         text = _generate(prompt)
     return ScriptSegment(
         segment_key=category, voice_name=voice_name, language_code=language_code, text=text
+    )
+
+
+def build_weather_segment(
+    forecast: dict, location_label: str, voice_name: str, language_code: str
+) -> ScriptSegment:
+    prompt = WEATHER_PROMPT.format(location_label=location_label, **forecast)
+    text = _generate(prompt)
+    return ScriptSegment(
+        segment_key="weather", voice_name=voice_name, language_code=language_code, text=text
     )

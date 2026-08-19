@@ -33,3 +33,8 @@ tier2:
     voice_name: "en-US-Neural2-G"
     language_code: "en-US"
     voice_display_name: "WNBA"
+
+weather:
+  voice_name: "en-US-Neural2-I"
+  language_code: "en-US"
+  voice_display_name: "Weather — closing sign-off"

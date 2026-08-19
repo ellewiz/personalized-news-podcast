@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import config, dedupe, fetch, rss_feed, script, state as state_module, tts, web_player
+from . import config, dedupe, fetch, rss_feed, script, state as state_module, tts, weather, web_player
 from .models import ScriptSegment
 
 CATEGORY_LABELS = {
@@ -84,6 +84,22 @@ def run() -> Path:
             )
         )
     _log("Scripts done.")
+
+    _log("Fetching weather forecast (National Weather Service, no API key)...")
+    try:
+        forecast = weather.fetch_forecast(config.WEATHER_LAT, config.WEATHER_LON)
+        weather_voice = voices["weather"]
+        segments.append(
+            script.build_weather_segment(
+                forecast,
+                config.WEATHER_LOCATION_LABEL,
+                weather_voice["voice_name"],
+                weather_voice["language_code"],
+            )
+        )
+    except Exception as exc:
+        # Weather is a nice-to-have closer, not worth failing the whole episode over.
+        _log(f"  weather segment skipped ({exc})")
 
     episode_date = datetime.now(timezone.utc)
     episode_id = episode_date.strftime("%Y-%m-%d")
