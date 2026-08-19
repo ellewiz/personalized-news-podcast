@@ -11,6 +11,10 @@ tier1_general_news:
     url: https://feeds.bbci.co.uk/news/world/rss.xml
   - name: NBC News
     url: http://feeds.nbcnews.com/nbcnews/public/news
+  - name: Vox — World
+    url: https://www.vox.com/rss/world/index.xml
+  - name: France 24
+    url: https://www.france24.com/en/rss
 
 tier2:
   soccer_world_cup:
@@ -23,6 +27,8 @@ tier2:
   tech_ai:
     - name: Daring Fireball
       url: https://daringfireball.net/feeds/main
+    - name: The Register
+      url: https://www.theregister.com/headlines.atom
     - name: The Verge
       url: https://www.theverge.com/rss/index.xml
     - name: Ars Technica
