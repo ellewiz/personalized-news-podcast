@@ -17,6 +17,8 @@ tier1_general_news:
     url: https://www.france24.com/en/rss
   - name: Radio Free Europe/Radio Liberty
     url: https://www.rferl.org/api/
+  - name: ProPublica
+    url: https://www.propublica.org/feeds/propublica/main
 
 tier2:
   markets:
