@@ -16,6 +16,14 @@ CATEGORY_LABELS = {
 # Segment order: tech/AI right after Tier 1, then all sports grouped together.
 CATEGORY_ORDER = ["tech_ai", "soccer_world_cup", "nfl", "nwsl", "wnba"]
 
+# Optional per-category listener preferences, folded into the script prompt.
+CATEGORY_PREFERENCES = {
+    "nfl": (
+        "Prioritize major headlines and storylines about the Philadelphia Eagles "
+        "specifically. Skip betting lines, odds, or prop bets entirely — not of interest."
+    ),
+}
+
 PAUSE_MS = 900
 
 
@@ -66,6 +74,7 @@ def run() -> Path:
                 items,
                 category_voice["voice_name"],
                 category_voice["language_code"],
+                preferences=CATEGORY_PREFERENCES.get(category, ""),
             )
         )
     _log("Scripts done.")

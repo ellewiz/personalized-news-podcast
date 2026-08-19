@@ -9,8 +9,6 @@ tier1_general_news:
     url: https://rss.upi.com/news/tn_us.rss
   - name: BBC World News
     url: https://feeds.bbci.co.uk/news/world/rss.xml
-  - name: CBS News
-    url: https://www.cbsnews.com/latest/rss/main
   - name: NBC News
     url: http://feeds.nbcnews.com/nbcnews/public/news
 

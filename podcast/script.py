@@ -45,7 +45,7 @@ between two hosts, so don't write it as a conversation or use multiple speaker l
 properly; if there's very little, give it a short mention rather than padding it out.
 - Collapse near-duplicate coverage of the same story into one mention.
 - No headings, no bullet points, no markdown — just the words to be read aloud.
-
+{preferences_block}
 Items:
 {items}
 
@@ -78,11 +78,17 @@ def build_tier2_segment(
     items: list[FeedItem],
     voice_name: str,
     language_code: str,
+    preferences: str = "",
 ) -> ScriptSegment:
     if not items:
         text = f"Quiet news window for {category_label} today — nothing significant to report."
     else:
-        prompt = TIER2_PROMPT.format(category_label=category_label, items=_items_block(items))
+        preferences_block = f"\nListener preferences for this segment:\n{preferences}\n" if preferences else "\n"
+        prompt = TIER2_PROMPT.format(
+            category_label=category_label,
+            items=_items_block(items),
+            preferences_block=preferences_block,
+        )
         text = _generate(prompt)
     return ScriptSegment(
         segment_key=category, voice_name=voice_name, language_code=language_code, text=text
