@@ -77,6 +77,28 @@ government data — for Skillman, NJ 08558 by default (configurable via
 weather API is unavailable, the segment is skipped rather than failing the
 whole episode.
 
+## How it works
+
+```mermaid
+flowchart TD
+    Trigger["launchd — Mon-Fri, 6:00 AM"] --> Publish["scripts/publish.sh"]
+    Publish --> Pull["git pull"]
+    Pull --> Run["python run.py"]
+
+    Run --> Fetch["Fetch RSS feeds<br/>(feeds.yaml, ~30 sources)"]
+    Fetch --> Dedupe["Dedupe near-duplicate<br/>stories per category"]
+    Dedupe --> Scripts["Generate spoken scripts<br/>(Anthropic API, one per segment)"]
+    Scripts --> Weather["Fetch + script the weather<br/>(National Weather Service API)"]
+    Weather --> TTS["Synthesize audio<br/>(Google Cloud TTS, one voice per segment)"]
+    TTS --> Stitch["Stitch into one episode MP3"]
+    Stitch --> Write["Write feed.xml, index.html,<br/>state.json"]
+    Write --> Push["git commit + push"]
+
+    Push --> Pages["GitHub Pages (docs/)"]
+    Pages --> Apps["Podcast apps<br/>(Pocket Casts, etc. via feed.xml)"]
+    Pages --> Player["Web player<br/>(index.html — no app needed)"]
+```
+
 ## Architecture
 
 ```
