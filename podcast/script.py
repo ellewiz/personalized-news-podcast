@@ -1,7 +1,11 @@
+import re
+
 from anthropic import Anthropic
 
 from . import config
 from .models import FeedItem, ScriptSegment
+
+_SENTENCE_END_RE = re.compile(r'[.!?][\'")\]]*\s')
 
 _client: Anthropic | None = None
 
@@ -89,14 +93,33 @@ Forecast for {period_name}: {short_forecast}. High of {temperature} degrees \
 Write only the script text, nothing else."""
 
 
+def _trim_to_last_sentence(text: str) -> str:
+    """If a response got cut off mid-sentence, trim back to the last complete
+    one rather than shipping audio that ends mid-word."""
+    matches = list(_SENTENCE_END_RE.finditer(text + " "))
+    if not matches:
+        return text
+    return text[: matches[-1].end()].strip()
+
+
 def _generate(prompt: str) -> str:
     client = _get_client()
-    response = client.messages.create(
-        model=config.ANTHROPIC_MODEL,
-        max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return "".join(block.text for block in response.content if block.type == "text").strip()
+    text = ""
+    # A busy news day can legitimately produce a long Tier 2 script (no length
+    # cap in that prompt) — 1024 tokens was too tight and silently truncated
+    # mid-word. Retry once on a genuinely empty response before giving up.
+    for _attempt in range(2):
+        response = client.messages.create(
+            model=config.ANTHROPIC_MODEL,
+            max_tokens=2048,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = "".join(block.text for block in response.content if block.type == "text").strip()
+        if response.stop_reason == "max_tokens":
+            text = _trim_to_last_sentence(text)
+        if text:
+            return text
+    return text or "(Content unavailable for this segment.)"
 
 
 def build_tier1_segment(

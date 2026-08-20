@@ -253,7 +253,20 @@ segment, plus the broadcast time used. Generated audio has no easy way to
 go back and check "what did it actually say," so this exists purely so a
 listener-reported issue (a factual mix-up, confusing phrasing, whatever)
 can be traced to the actual text instead of being unrecoverable once the
-audio's already made.
+audio's already made. This is exactly what caught the mid-word truncation
+bug below on its first real occurrence.
+
+**Mid-sentence truncation on busy Tier 2 segments.** Tier 1 has an
+explicit word-count target; Tier 2 deliberately doesn't (it's told to
+"cover it properly" when there's a lot of news). `_generate()`'s
+`max_tokens=1024` was too tight for that — on a busy day, several Tier 2
+segments hit the cap and got cut off mid-word, and Tech & AI came back
+completely empty. Fixed by raising the cap to 2048, trimming back to the
+last complete sentence if the cap is still hit (rather than shipping
+dangling audio), and retrying once on a genuinely empty response before
+falling back to a placeholder. Loosening the Tier 1 length *guideline*
+wouldn't have touched this — the segment that actually has a length limit
+finished cleanly; the ones with no limit hit an invisible technical one.
 
 **`state/state.json`** is the source of truth for both "already seen"
 item guids (so the same story doesn't get covered twice) and the full
