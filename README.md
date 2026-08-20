@@ -82,8 +82,8 @@ whole episode.
 ```mermaid
 flowchart TD
     Trigger["launchd — Mon-Fri, 6:00 AM"] --> Publish["scripts/publish.sh"]
-    Publish --> Pull["git pull"]
-    Pull --> Run["python run.py"]
+    Publish --> Pull1["git pull"]
+    Pull1 --> Run["python run.py"]
 
     Run --> Fetch["Fetch RSS feeds<br/>(feeds.yaml, ~30 sources)"]
     Fetch --> Dedupe["Dedupe near-duplicate<br/>stories per category"]
@@ -92,7 +92,9 @@ flowchart TD
     Weather --> TTS["Synthesize audio<br/>(Google Cloud TTS, one voice per segment)"]
     TTS --> Stitch["Stitch into one episode MP3"]
     Stitch --> Write["Write feed.xml, index.html,<br/>state.json"]
-    Write --> Push["git commit + push"]
+    Write --> Commit["git commit"]
+    Commit --> Pull2["git pull again<br/>(catch anything that landed<br/>on the remote meanwhile)"]
+    Pull2 --> Push["git push"]
 
     Push --> Pages["GitHub Pages (docs/)"]
     Pages --> Apps["Podcast apps<br/>(Pocket Casts, etc. via feed.xml)"]
