@@ -81,24 +81,52 @@ whole episode.
 
 ```mermaid
 flowchart TD
-    Trigger["launchd — Mon-Fri, 6:00 AM"] --> Publish["scripts/publish.sh"]
-    Publish --> Pull1["git pull"]
-    Pull1 --> Run["python run.py"]
+    subgraph trigger["⏰ Trigger"]
+        Trigger["launchd — Mon-Fri, 6:00 AM"]
+    end
 
-    Run --> Fetch["Fetch RSS feeds<br/>(feeds.yaml, ~30 sources)"]
-    Fetch --> Dedupe["Dedupe near-duplicate<br/>stories per category"]
-    Dedupe --> Scripts["Generate spoken scripts<br/>(Anthropic API, one per segment)"]
-    Scripts --> Weather["Fetch + script the weather<br/>(National Weather Service API)"]
-    Weather --> TTS["Synthesize audio<br/>(Google Cloud TTS, one voice per segment)"]
-    TTS --> Stitch["Stitch into one episode MP3"]
-    Stitch --> Write["Write feed.xml, index.html,<br/>state.json"]
-    Write --> Commit["git commit"]
-    Commit --> Pull2["git pull again<br/>(catch anything that landed<br/>on the remote meanwhile)"]
-    Pull2 --> Push["git push"]
+    subgraph orchestration["🔧 Orchestration — scripts/publish.sh"]
+        Pull1["git pull"]
+        Run["python run.py"]
+        Commit["git commit"]
+        Pull2["git pull again<br/>(catch anything that<br/>landed on the remote)"]
+        Push["git push"]
+    end
 
-    Push --> Pages["GitHub Pages (docs/)"]
-    Pages --> Apps["Podcast apps<br/>(Pocket Casts, etc. via feed.xml)"]
-    Pages --> Player["Web player<br/>(index.html — no app needed)"]
+    subgraph pipeline["📻 Content pipeline — podcast/pipeline.py"]
+        Fetch["Fetch RSS feeds<br/>(~30 sources)"]
+        Dedupe["Dedupe near-duplicates"]
+        Scripts["Generate spoken scripts<br/>(Anthropic API)"]
+        Weather["Fetch + script weather<br/>(National Weather Service API)"]
+        TTS["Synthesize audio<br/>(Google Cloud TTS)"]
+        Stitch["Stitch into one episode MP3"]
+        Write["Write feed.xml, index.html,<br/>state.json"]
+    end
+
+    subgraph publish_stage["📡 Publish"]
+        Pages["GitHub Pages (docs/)"]
+        Apps["Podcast apps<br/>(via feed.xml)"]
+        Player["Web player<br/>(index.html)"]
+    end
+
+    Trigger --> Pull1
+    Pull1 --> Run
+    Run --> Fetch
+    Fetch --> Dedupe --> Scripts --> Weather --> TTS --> Stitch --> Write
+    Write --> Commit --> Pull2 --> Push
+    Push --> Pages
+    Pages --> Apps
+    Pages --> Player
+
+    classDef triggerStyle fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef orchStyle fill:#e0e7ff,stroke:#4f46e5,color:#312e81
+    classDef pipeStyle fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef pubStyle fill:#dcfce7,stroke:#16a34a,color:#14532d
+
+    class Trigger triggerStyle
+    class Pull1,Run,Commit,Pull2,Push orchStyle
+    class Fetch,Dedupe,Scripts,Weather,TTS,Stitch,Write pipeStyle
+    class Pages,Apps,Player pubStyle
 ```
 
 ## Architecture
