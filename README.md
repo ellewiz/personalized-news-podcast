@@ -82,7 +82,7 @@ whole episode.
 ```mermaid
 flowchart TD
     subgraph trigger["⏰ Trigger"]
-        Trigger["launchd — Mon-Fri, 6:00 AM"]
+        Trigger["launchd — Mon-Fri, 6:00 AM ET"]
     end
 
     subgraph orchestration["🔧 Orchestration — scripts/publish.sh"]
@@ -149,7 +149,7 @@ podcast/
   pipeline.py                     orchestrates the full run, with progress logging
 run.py                      entrypoint: `python run.py`
 scripts/publish.sh           run pipeline, then git add/commit/push docs + state
-launchd/                     macOS scheduled-job definition (Mon-Fri, 6am)
+launchd/                     macOS scheduled-job definition (Mon-Fri, 6am ET)
 state/state.json             seen item guids + published episode metadata
 docs/                        GitHub Pages root: feed.xml + episodes/*.mp3
                               (each episode also gets a *-script.txt transcript,
@@ -192,7 +192,10 @@ publishing). Writes `docs/episodes/<date>.mp3` and rebuilds
 
 Runs via `launchd` on macOS — the plist is checked into
 [`launchd/com.ellewiz.personalized-news-podcast.plist`](./launchd/com.ellewiz.personalized-news-podcast.plist),
-fires weekdays at 6:00 AM.
+fires weekdays at 6:00 AM **Eastern** (the plist's `Hour: 6` fires
+according to the Mac's own system timezone, currently ET — if this ever
+runs on a machine in a different timezone, the actual local fire time
+changes with it, the plist itself has no explicit "ET" concept).
 
 **Install on a Mac:**
 ```
@@ -201,7 +204,7 @@ cp launchd/com.ellewiz.personalized-news-podcast.plist ~/Library/LaunchAgents/
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ellewiz.personalized-news-podcast.plist
 ```
 
-**Test-fire it immediately** (don't wait for 6am to check it works):
+**Test-fire it immediately** (don't wait for 6am ET to check it works):
 ```
 launchctl start com.ellewiz.personalized-news-podcast
 cat logs/publish.log
@@ -209,7 +212,7 @@ cat logs/publish.error.log
 ```
 
 **Requirements for unattended runs to actually succeed:**
-- The Mac needs to be awake at 6am, or it runs whenever it next wakes.
+- The Mac needs to be awake at 6am ET, or it runs whenever it next wakes.
   System Settings → Battery → Power Adapter → enable "Prevent automatic
   sleeping when the display is off" — the display can still turn off on
   its own schedule, the system just stays awake underneath it.
