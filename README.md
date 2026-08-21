@@ -315,6 +315,33 @@ episode list used to rebuild `feed.xml` from scratch on every run. It's
 committed to the repo (via `scripts/publish.sh`) so state persists across
 runs without a separate database.
 
+**Per-segment failure isolation.** After two straight incidents where one
+flaky component (an API rate limit, a request-size rejection) killed an
+entire episode, went through the rest of the pipeline looking for the
+same failure shape. Weather already had the right instinct (try/except,
+skip gracefully) — extended to everywhere else:
+- `fetch.py`: each feed source is now fetched inside its own try/except.
+  One down/malformed/misconfigured feed contributes zero items instead of
+  crashing the whole fetch step — real risk given ~30 hand-edited sources.
+- `pipeline.py`: Tier 1/Tier 2 script generation and TTS synthesis are
+  each wrapped per-segment. A script-gen failure substitutes a plain
+  placeholder line for that segment; a TTS failure drops just that
+  segment's audio. Either way, the episode still ships instead of not
+  existing at all.
+- `pipeline.py` also now validates at startup that every category in
+  `CATEGORY_ORDER` has a matching `config/voices.yaml` entry, and fails
+  immediately with a clear message if not — instead of a `KeyError` deep
+  in the TTS loop after fetch/script API costs are already spent.
+
+**Timezone bug in `fetch.py` (found during the same review, unrelated to
+the incidents above).** `_entry_datetime()` used `time.mktime()`, which
+assumes its input is local time — but feedparser's `published_parsed` is
+already normalized to UTC. Silently skewed every item's timestamp by the
+machine's UTC offset (~4-5 hours on this Mac). Didn't cause visible
+failures (the skew is uniform, so relative ordering/dedup stayed
+correct), but did distort the recency-window cutoff. Fixed by using
+`calendar.timegm()` instead, which correctly treats the input as UTC.
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)

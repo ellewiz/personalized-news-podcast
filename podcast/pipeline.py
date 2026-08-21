@@ -54,6 +54,15 @@ def run() -> Path:
 
     feeds = config.load_feeds()
     voices = config.load_voices()
+
+    missing_voices = [c for c in CATEGORY_ORDER if c not in voices.get("tier2", {})]
+    if missing_voices:
+        raise RuntimeError(
+            f"config/voices.yaml is missing tier2 entries for: {', '.join(missing_voices)} "
+            "— add a voice_name/language_code for each before running. Failing fast here "
+            "instead of partway through the run, after API costs are already spent."
+        )
+
     app_state = state_module.load_state()
     seen_guids = set(app_state["seen_guids"])
 
@@ -76,17 +85,31 @@ def run() -> Path:
     _log("Generating scripts (calls the Anthropic API, one per segment)...")
     tier1_voice = voices["tier1"]
     _log("  tier1...")
-    segments: list[ScriptSegment] = [
-        script.build_tier1_segment(
-            tier1_items, tier1_voice["voice_name"], tier1_voice["language_code"], broadcast_time
-        )
-    ]
+    try:
+        segments: list[ScriptSegment] = [
+            script.build_tier1_segment(
+                tier1_items, tier1_voice["voice_name"], tier1_voice["language_code"], broadcast_time
+            )
+        ]
+    except Exception as exc:
+        # One segment's API hiccup shouldn't take down the whole episode — same
+        # philosophy as the weather try/except below, applied everywhere else too.
+        _log(f"  tier1 script generation failed ({exc}) — using a placeholder")
+        segments = [
+            ScriptSegment(
+                segment_key="tier1",
+                voice_name=tier1_voice["voice_name"],
+                language_code=tier1_voice["language_code"],
+                text="Headlines are unavailable for this segment today.",
+            )
+        ]
+
     for category in CATEGORY_ORDER:
         items = tier2_items.get(category, [])
         _log(f"  {category}...")
         category_voice = voices["tier2"][category]
-        segments.append(
-            script.build_tier2_segment(
+        try:
+            segment = script.build_tier2_segment(
                 category,
                 CATEGORY_LABELS.get(category, category),
                 items,
@@ -95,7 +118,15 @@ def run() -> Path:
                 broadcast_time,
                 preferences=CATEGORY_PREFERENCES.get(category, ""),
             )
-        )
+        except Exception as exc:
+            _log(f"  {category} script generation failed ({exc}) — using a placeholder")
+            segment = ScriptSegment(
+                segment_key=category,
+                voice_name=category_voice["voice_name"],
+                language_code=category_voice["language_code"],
+                text=f"Coverage for {CATEGORY_LABELS.get(category, category)} is unavailable today.",
+            )
+        segments.append(segment)
     _log("Scripts done.")
 
     _log("Fetching weather forecast (National Weather Service, no API key)...")
@@ -133,13 +164,22 @@ def run() -> Path:
     for i, segment in enumerate(segments):
         _log(f"  {segment.segment_key}...")
         segment_path = work_dir / f"{i:02d}-{segment.segment_key}.mp3"
-        tts.synthesize_segment(segment, segment_path)
+        try:
+            tts.synthesize_segment(segment, segment_path)
+        except Exception as exc:
+            # A TTS hiccup on one segment drops just that segment from this
+            # episode instead of losing the whole run, same reasoning as above.
+            _log(f"  {segment.segment_key} audio synthesis failed ({exc}) — skipping this segment")
+            continue
         segment_paths.append(segment_path)
 
         if i < len(segments) - 1:
-            pause_path = work_dir / f"{i:02d}-pause.mp3"
-            tts.synthesize_pause(PAUSE_MS, segment.voice_name, segment.language_code, pause_path)
-            segment_paths.append(pause_path)
+            try:
+                pause_path = work_dir / f"{i:02d}-pause.mp3"
+                tts.synthesize_pause(PAUSE_MS, segment.voice_name, segment.language_code, pause_path)
+                segment_paths.append(pause_path)
+            except Exception as exc:
+                _log(f"  pause after {segment.segment_key} failed ({exc}) — skipping pause")
 
     _log("Stitching segments into one episode file...")
     config.EPISODES_DIR.mkdir(parents=True, exist_ok=True)

@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 docs/episodes/.tmp-*/
 logs/
+.DS_Store

@@ -1,4 +1,4 @@
-import time
+import calendar
 from datetime import datetime, timedelta, timezone
 
 import feedparser
@@ -11,7 +11,10 @@ def _entry_datetime(entry) -> datetime | None:
     parsed = entry.get("published_parsed") or entry.get("updated_parsed")
     if not parsed:
         return None
-    return datetime.fromtimestamp(time.mktime(parsed), tz=timezone.utc)
+    # feedparser normalizes this struct_time to UTC — timegm is the correct
+    # conversion (mktime assumes the input is LOCAL time, which silently
+    # skews every timestamp by the machine's UTC offset).
+    return datetime.fromtimestamp(calendar.timegm(parsed), tz=timezone.utc)
 
 
 def _entry_guid(entry) -> str:
@@ -19,24 +22,31 @@ def _entry_guid(entry) -> str:
 
 
 def fetch_source(source: dict, segment_key: str, cutoff: datetime) -> list[FeedItem]:
-    parsed = feedparser.parse(source["url"])
-    items = []
-    for entry in parsed.entries:
-        published = _entry_datetime(entry)
-        if published is None or published < cutoff:
-            continue
-        items.append(
-            FeedItem(
-                guid=_entry_guid(entry),
-                title=entry.get("title", "").strip(),
-                summary=entry.get("summary", "").strip(),
-                link=entry.get("link", ""),
-                published=published,
-                source_name=source["name"],
-                segment_key=segment_key,
+    name = source.get("name", source.get("url", "unknown source"))
+    try:
+        parsed = feedparser.parse(source["url"])
+        items = []
+        for entry in parsed.entries:
+            published = _entry_datetime(entry)
+            if published is None or published < cutoff:
+                continue
+            items.append(
+                FeedItem(
+                    guid=_entry_guid(entry),
+                    title=entry.get("title", "").strip(),
+                    summary=entry.get("summary", "").strip(),
+                    link=entry.get("link", ""),
+                    published=published,
+                    source_name=source["name"],
+                    segment_key=segment_key,
+                )
             )
-        )
-    return items
+        return items
+    except Exception as exc:
+        # One bad feed (down, malformed, misconfigured) shouldn't take out
+        # every other source — skip it and keep going.
+        print(f"  [fetch warning] {name}: {exc}", flush=True)
+        return []
 
 
 def fetch_all(feeds: dict, seen_guids: set[str]) -> dict[str, list[FeedItem]]:
