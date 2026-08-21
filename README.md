@@ -298,6 +298,17 @@ falling back to a placeholder. Loosening the Tier 1 length *guideline*
 wouldn't have touched this — the segment that actually has a length limit
 finished cleanly; the ones with no limit hit an invisible technical one.
 
+**Google TTS request-size limit (a fix causing a fix).** Raising
+`max_tokens` above fixed the truncation, but it also removed the
+accidental ceiling that had been keeping scripts under Google Cloud TTS's
+hard 5000-byte request limit. First real news-heavy day after that change,
+a Tier 2 script (Tech & AI, 53 new items that morning) crossed the line
+and Google returned a 400, which killed the run entirely — no episode
+that day. `tts.py`'s `_fit_ssml()` now checks the actual SSML byte size
+before sending and trims at a sentence boundary (repeating if needed)
+until it fits, so a request that would've been rejected gets a slightly
+shorter episode instead of no episode.
+
 **`state/state.json`** is the source of truth for both "already seen"
 item guids (so the same story doesn't get covered twice) and the full
 episode list used to rebuild `feed.xml` from scratch on every run. It's
