@@ -56,6 +56,7 @@ def render_html(episodes: list[dict]) -> str:
     background: #fafafa;
     color: #1a1a1a;
   }}
+  .artwork {{ width: 120px; height: 120px; border-radius: 16px; display: block; margin-bottom: 16px; }}
   h1 {{ font-size: 28px; margin-bottom: 4px; }}
   .subtitle {{ color: #666; margin-top: 0; margin-bottom: 32px; }}
   h2 {{ font-size: 18px; margin-top: 40px; }}
@@ -68,6 +69,7 @@ def render_html(episodes: list[dict]) -> str:
 </style>
 </head>
 <body>
+  <img class="artwork" src="artwork.png" alt="{escape(PAGE_TITLE)} artwork">
   <h1>{escape(PAGE_TITLE)}</h1>
   <p class="subtitle">Your daily news &amp; sports briefing</p>
   {body}

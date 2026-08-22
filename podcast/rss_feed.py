@@ -21,6 +21,10 @@ def build_feed(episodes: list[dict]) -> FeedGenerator:
     fg.podcast.itunes_author(PODCAST_AUTHOR)
     fg.podcast.itunes_explicit("no")
     fg.podcast.itunes_category("News")
+    if config.PODCAST_BASE_URL:
+        artwork_url = f"{config.PODCAST_BASE_URL}/artwork.png"
+        fg.image(url=artwork_url, title=PODCAST_TITLE, link=config.PODCAST_BASE_URL)
+        fg.podcast.itunes_image(artwork_url)
 
     for episode in sorted(episodes, key=lambda e: e["pub_date"], reverse=True):
         fe = fg.add_entry()

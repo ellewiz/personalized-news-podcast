@@ -36,7 +36,11 @@ CATEGORY_PREFERENCES = {
         "concurrent with a US session that hasn't started yet); never imply everything "
         "is happening 'today' in the same sense. Always state the currency or unit for "
         "every number explicitly (e.g. '16 rand per dollar,' not '16 per dollar') — "
-        "never leave a bare number without its unit."
+        "never leave a bare number without its unit. If there's a major acquisition, "
+        "merger, or leveraged buyout (LBO) announced, cover it even if it would "
+        "otherwise be bumped for space — name who's involved (acquirer and target), "
+        "the deal size if reported, and the anticipated close date or timeline if "
+        "mentioned in the source material."
     ),
     "nfl": (
         "Prioritize major headlines and storylines about the Philadelphia Eagles "

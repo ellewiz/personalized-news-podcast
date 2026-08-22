@@ -154,6 +154,7 @@ state/state.json             seen item guids + published episode metadata
 docs/                        GitHub Pages root: feed.xml + episodes/*.mp3
                               (each episode also gets a *-script.md transcript,
                               not published prominently but kept in the repo)
+docs/artwork.png             static podcast cover art (see design notes)
 ```
 
 ## Setup (from scratch on a new machine)
@@ -404,6 +405,24 @@ you actually listen rather than read the code:
   The underlying feeds are still general club-football sources, so this
   is a prompt-level filter for now, not a change to what's fetched — see
   "Possible next steps" below.
+
+**M&A/LBO coverage in Markets.** Added a line to
+`CATEGORY_PREFERENCES["markets"]` so a major acquisition, merger, or
+leveraged buyout gets covered even under the "2-3 biggest stories" cap,
+and specifically names who's involved (acquirer/target), deal size if
+reported, and expected close date/timeline if the source mentions it —
+those are the details that actually matter for a headline like that,
+versus the deal existing at all.
+
+**Podcast artwork.** No feed source provides cover art, and podcast apps
+(Pocket Casts, Apple Podcasts, etc.) expect one — without it, some apps
+show a generic placeholder or refuse to display the feed cleanly. Since
+there's no natural per-episode image to source, generated one static
+logo (`docs/artwork.png`, 1400x1400 PNG, meets Apple Podcasts' minimum
+size) with Pillow (a one-time build step, not a pipeline runtime
+dependency — not in `requirements.txt`). Wired into `rss_feed.py` via
+both the standard RSS `<image>` tag and `<itunes:image>` (some apps only
+honor one or the other), and into `web_player.py`'s HTML header.
 
 ## Feeds and voices
 
