@@ -23,6 +23,32 @@ def _items_block(items: list[FeedItem]) -> str:
     return "\n".join(f"- [{item.source_name}] {item.title}: {item.summary}" for item in items)
 
 
+# Shared broadcast-writing rules for both news segments, based on standard radio/podcast
+# script-writing practice: write for the ear (a listener gets one pass, can't rewind), so
+# sentences stay short and declarative, one idea at a time, instead of the dense,
+# multi-clause paragraphs that read fine on a page but sound breathless out loud.
+BROADCAST_STYLE_RULES = """- Short, declarative sentences, roughly 8-20 words each. One idea or fact per sentence.
+- Avoid stacking multiple independent clauses with em-dashes or semicolons — give the \
+narrator room to breathe. Prefer separate sentences over one long one.
+- Subject-verb-object construction. Conversational, as if speaking to one listener.
+- Use signposting words between stories (first, next, meanwhile, also) so the listener \
+can follow the structure by ear.
+- On first mention of a person or organization the listener may not recognize, briefly \
+identify them with a short appositive (e.g. "Vinod Khosla, the venture capitalist," not \
+just "Vinod Khosla"). Skip this for well-known figures or companies.
+- State every number's unit, currency, or comparison explicitly — never leave a bare \
+number dangling (e.g. "16 rand per dollar," not "16 per dollar"; "up 3 percent," not \
+just "up 3").
+- Avoid vague filler that doesn't actually convey information (e.g. don't say a company \
+"continued making its mark" or mention a "broader roundup" — say specifically what \
+happened).
+- Avoid meta-commentary about the show's own format or timing unless materially useful \
+to the listener.
+- Skip throwaway filler phrases ("of course," "needless to say," "as you'd expect") that \
+add words without adding information.
+- Write each distinct story or idea as its own short paragraph, separated by a blank \
+line. Paragraph breaks are expected and encouraged."""
+
 TIER1_PROMPT = """You are writing the "brief awareness" opening segment of a daily news \
 podcast. This episode is being generated and published at {broadcast_time} — the listener \
 will hear it shortly after that. Using ONLY the headlines below, write a short spoken-word \
@@ -33,15 +59,20 @@ Rules:
 - Cover the top few headlines only, in a handful of sentences total.
 - If multiple items clearly describe the same story, mention it ONCE — never stack \
 multiple articles about one story.
-- Plain, factual, spoken-audio tone. No headings, no bullet points, no markdown — \
-just the words to be read aloud.
+- Plain, factual, spoken-audio tone. No headings, no numbered/bulleted lists, no markdown \
+symbols (#, *, -) — but do use paragraph breaks between stories, per the writing-style \
+rules below.
 - Do NOT copy time-of-day words ("this morning", "tonight", "good evening", etc.) \
 straight from a headline or summary — those were written by the source at whatever time \
 THEY published, which is not the broadcast time above. If timing matters, describe it \
 relative to the broadcast time (e.g. "overnight," "earlier today") instead of assuming \
 the source's framing still applies.
-- Never invent a greeting ("good morning," "good evening") — this is a news segment, \
-not a personal address.
+- Do NOT write any greeting or opening salutation of your own ("good morning," "here's \
+the news," etc.) — a greeting line is added separately, before your text. Start straight \
+in with the first headline.
+
+Writing style — this is spoken audio, not text read on a screen:
+{style_rules}
 
 Headlines:
 {items}
@@ -59,7 +90,8 @@ between two hosts, so don't write it as a conversation or use multiple speaker l
 - Depth should scale with how much actually happened: if there's a lot below, cover it \
 properly; if there's very little, give it a short mention rather than padding it out.
 - Collapse near-duplicate coverage of the same story into one mention.
-- No headings, no bullet points, no markdown — just the words to be read aloud.
+- No headings, no numbered/bulleted lists, no markdown symbols (#, *, -) — but do use \
+paragraph breaks between stories, per the writing-style rules below.
 - Do NOT copy time-of-day words ("this morning", "tonight", "good evening", etc.) \
 straight from a headline or summary — those were written by the source at whatever time \
 THEY published, which is not the broadcast time above. If an item concerns a different \
@@ -69,6 +101,9 @@ already closed hours earlier, rather than treating it as concurrent with a US se
 that hasn't opened yet.
 - Never open with a greeting ("good morning," "good evening") — this segment continues \
 mid-episode, it is not a fresh start.
+
+Writing style — this is spoken audio, not text read on a screen:
+{style_rules}
 {preferences_block}
 Items:
 {items}
@@ -83,7 +118,9 @@ weather report for {location_label}.
 
 Rules:
 - Brief: 2-4 sentences, roughly 30-50 words.
-- Plain, factual, spoken-audio tone.
+- Plain, factual, spoken-audio tone. Short, declarative, subject-verb-object sentences.
+- State the unit for every measurement you mention (temperature, wind speed, etc.) — \
+never leave a bare number.
 - End on a short, natural sign-off line (e.g. wishing the listener a good day or commute).
 - No headings, no bullet points, no markdown — just the words to be read aloud.
 
@@ -128,7 +165,13 @@ def build_tier1_segment(
     if not items:
         text = "No major headlines to cover today."
     else:
-        text = _generate(TIER1_PROMPT.format(items=_items_block(items), broadcast_time=broadcast_time))
+        text = _generate(
+            TIER1_PROMPT.format(
+                items=_items_block(items),
+                broadcast_time=broadcast_time,
+                style_rules=BROADCAST_STYLE_RULES,
+            )
+        )
     return ScriptSegment(
         segment_key="tier1", voice_name=voice_name, language_code=language_code, text=text
     )
@@ -152,6 +195,7 @@ def build_tier2_segment(
             items=_items_block(items),
             preferences_block=preferences_block,
             broadcast_time=broadcast_time,
+            style_rules=BROADCAST_STYLE_RULES,
         )
         text = _generate(prompt)
     return ScriptSegment(

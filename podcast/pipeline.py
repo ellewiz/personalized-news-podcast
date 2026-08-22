@@ -19,6 +19,9 @@ CATEGORY_LABELS = {
     "wnba": "the WNBA",
 }
 
+# Human-readable transcript headers for the non-category segments too.
+SEGMENT_LABELS = {"tier1": "Top Headlines", "weather": "Weather", **CATEGORY_LABELS}
+
 # Segment order: markets right after Tier 1, then tech/AI, then all sports grouped together.
 CATEGORY_ORDER = ["markets", "tech_ai", "soccer_world_cup", "nfl", "nwsl", "wnba"]
 
@@ -31,11 +34,21 @@ CATEGORY_PREFERENCES = {
         "airs before the US market opens — be explicit about which session/market each "
         "item refers to (e.g. an Asian market's session ended hours ago and is not "
         "concurrent with a US session that hasn't started yet); never imply everything "
-        "is happening 'today' in the same sense."
+        "is happening 'today' in the same sense. Always state the currency or unit for "
+        "every number explicitly (e.g. '16 rand per dollar,' not '16 per dollar') — "
+        "never leave a bare number without its unit."
     ),
     "nfl": (
         "Prioritize major headlines and storylines about the Philadelphia Eagles "
         "specifically. Skip betting lines, odds, or prop bets entirely — not of interest."
+    ),
+    "soccer_world_cup": (
+        "Prioritize stories specifically about the US Men's National Team (USMNT) and "
+        "men's Olympic soccer. Only mention general club football (Premier League "
+        "transfers, etc.) if there's genuinely nothing USMNT- or Olympics-related to "
+        "cover that day, and keep any such mention brief — this listener doesn't follow "
+        "club football closely. Exception: during an active FIFA World Cup tournament "
+        "window, broaden coverage to the tournament generally, not just USMNT games."
     ),
 }
 
@@ -67,7 +80,12 @@ def run() -> Path:
     seen_guids = set(app_state["seen_guids"])
 
     episode_date = datetime.now(timezone.utc)
-    broadcast_time = episode_date.astimezone(BROADCAST_TZ).strftime("%A, %B %-d, %Y at %-I:%M %p %Z")
+    now_local = episode_date.astimezone(BROADCAST_TZ)
+    broadcast_time = now_local.strftime("%A, %B %-d, %Y at %-I:%M %p %Z")
+    greeting_line = (
+        f"Good morning, it's {now_local.strftime('%-I:%M %p')}, "
+        f"{now_local.strftime('%A, %B %-d')}. Here is the news you can use."
+    )
 
     _log("Fetching feeds...")
     fetched = fetch.fetch_all(feeds, seen_guids)
@@ -103,6 +121,11 @@ def run() -> Path:
                 text="Headlines are unavailable for this segment today.",
             )
         ]
+
+    # The greeting is code-generated (not LLM-written) so the time/date are always
+    # accurate, and prepended after either the success or placeholder path above so
+    # the show always opens properly regardless of how tier1 generation went.
+    segments[0].text = f"{greeting_line}\n\n{segments[0].text}"
 
     for category in CATEGORY_ORDER:
         items = tier2_items.get(category, [])
@@ -145,7 +168,9 @@ def run() -> Path:
         # Weather is a nice-to-have closer, not worth failing the whole episode over.
         _log(f"  weather segment skipped ({exc})")
 
-    episode_id = episode_date.strftime("%Y-%m-%d")
+    # Use the NY-local calendar day, not the UTC one, so the episode's date label
+    # always matches the actual broadcast day it aired on.
+    episode_id = now_local.strftime("%Y-%m-%d")
     work_dir = config.EPISODES_DIR / f".tmp-{episode_id}"
     work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -153,11 +178,16 @@ def run() -> Path:
     # confusing phrasing, factual mix-up) can actually be traced back to what was
     # generated, instead of being unrecoverable once the audio's already made.
     config.EPISODES_DIR.mkdir(parents=True, exist_ok=True)
-    transcript_path = config.EPISODES_DIR / f"{episode_id}-script.txt"
-    transcript_path.write_text(
-        f"Broadcast time: {broadcast_time}\n\n"
-        + "\n\n".join(f"=== {s.segment_key} ===\n{s.text}" for s in segments)
-    )
+    transcript_path = config.EPISODES_DIR / f"{episode_id}-script.md"
+    transcript_lines = [
+        f"# Daily Briefing — {episode_id}",
+        "",
+        f"**Broadcast time:** {broadcast_time}",
+        "",
+    ]
+    for s in segments:
+        transcript_lines += [f"## {SEGMENT_LABELS.get(s.segment_key, s.segment_key)}", "", s.text, ""]
+    transcript_path.write_text("\n".join(transcript_lines).rstrip() + "\n")
 
     _log("Synthesizing audio (calls the Google TTS API, one per segment)...")
     segment_paths = []
@@ -199,7 +229,7 @@ def run() -> Path:
 
     episode = {
         "guid": str(uuid.uuid4()),
-        "title": f"Daily Briefing — {episode_date.strftime('%Y-%m-%d')}",
+        "title": f"Daily Briefing — {episode_id}",
         "description": "Your personalized news and sports briefing.",
         "pub_date": episode_date.isoformat(),
         "audio_url": f"{config.PODCAST_BASE_URL}/episodes/{episode_filename}",

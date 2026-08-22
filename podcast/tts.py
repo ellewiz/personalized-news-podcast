@@ -16,6 +16,10 @@ GOOGLE_TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize"
 _MAX_SSML_BYTES = 4900
 _SENTENCE_END_RE = re.compile(r'[.!?][\'")\]]*\s')
 
+# Slightly slower than Google's default (1.0) — listener feedback was that
+# full-speed narration came across as rushed.
+SPEAKING_RATE = 0.93
+
 
 def _fit_ssml(text: str) -> str:
     """Build SSML for text, trimming (at a sentence boundary when possible)
@@ -46,7 +50,7 @@ def synthesize_segment(segment: ScriptSegment, out_path: Path) -> Path:
                 "languageCode": segment.language_code,
                 "name": segment.voice_name,
             },
-            "audioConfig": {"audioEncoding": "MP3"},
+            "audioConfig": {"audioEncoding": "MP3", "speakingRate": SPEAKING_RATE},
         },
         timeout=120,
     )

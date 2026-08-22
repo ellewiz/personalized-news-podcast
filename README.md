@@ -152,7 +152,7 @@ scripts/publish.sh           run pipeline, then git add/commit/push docs + state
 launchd/                     macOS scheduled-job definition (Mon-Fri, 6am ET)
 state/state.json             seen item guids + published episode metadata
 docs/                        GitHub Pages root: feed.xml + episodes/*.mp3
-                              (each episode also gets a *-script.txt transcript,
+                              (each episode also gets a *-script.md transcript,
                               not published prominently but kept in the repo)
 ```
 
@@ -281,13 +281,16 @@ also got an explicit instruction to call out which market session an item
 refers to, since it airs before the US market even opens.
 
 **Script transcripts.** Every run writes
-`docs/episodes/<date>-script.txt` — the full generated text for every
-segment, plus the broadcast time used. Generated audio has no easy way to
-go back and check "what did it actually say," so this exists purely so a
+`docs/episodes/<date>-script.md` — the full generated text for every
+segment, plus the broadcast time used, formatted as Markdown (one `##`
+heading per segment). Generated audio has no easy way to go back and
+check "what did it actually say," so this exists purely so a
 listener-reported issue (a factual mix-up, confusing phrasing, whatever)
 can be traced to the actual text instead of being unrecoverable once the
 audio's already made. This is exactly what caught the mid-word truncation
-bug below on its first real occurrence.
+bug below on its first real occurrence. (Originally written as plain
+`.txt` with `=== segment ===` separators; switched to `.md` for
+readability once these started actually getting read regularly.)
 
 **Mid-sentence truncation on busy Tier 2 segments.** Tier 1 has an
 explicit word-count target; Tier 2 deliberately doesn't (it's told to
@@ -345,6 +348,63 @@ failures (the skew is uniform, so relative ordering/dedup stayed
 correct), but did distort the recency-window cutoff. Fixed by using
 `calendar.timegm()` instead, which correctly treats the input as UTC.
 
+**Script quality pass, based on a real listened-to episode.** After
+listening to a full episode transcript, several writing/audio issues came
+up that no earlier design pass had caught, since they only show up when
+you actually listen rather than read the code:
+- **Run-on, "breathless" sentences.** Prompts had no explicit
+  broadcast-writing guidance — the LLM defaulted to dense, print-style
+  paragraphs stacking multiple ideas per sentence with em-dashes, which
+  reads fine but sounds exhausting spoken aloud. Fixed by researching
+  actual radio/podcast script-writing conventions (write for the ear, not
+  the eye — short declarative sentences, one idea each, SVO structure,
+  identify unfamiliar names on first mention, state units/currency
+  explicitly) and adding those rules to `TIER1_PROMPT`/`TIER2_PROMPT`/
+  `WEATHER_PROMPT` in `script.py` as a shared `BROADCAST_STYLE_RULES`
+  block, plus telling the model to write each story as its own paragraph.
+- **No pause between stories within a segment.** Paragraph breaks in the
+  generated text meant nothing to the TTS layer — `pronunciation.to_ssml()`
+  wrapped the whole segment in one `<speak>` block with no internal
+  breaks. Now it splits on blank lines and inserts a `<break time="500ms"/>`
+  between paragraphs, so distinct stories within one segment get audible
+  breathing room (separate from the existing 900ms pause *between*
+  segments in `pipeline.py`).
+- **Pronunciation regex boundary bug.** `pronunciation.py`'s match pattern
+  used `\b...\b`, which requires a word/non-word character transition on
+  each side — this silently fails to match an entry like `"A.J."` when
+  it's followed by a space, since a trailing period and a space are both
+  non-word characters with no transition between them. Google TTS ended
+  up reading the periods literally ("A period J period Brown"). Fixed by
+  switching to `(?<!\w)...(?!\w)` lookaround assertions instead, and
+  restructured `SPELL_OUT` from a flat set to a dict (matched text →
+  characters to actually spell) so `"A.J."` spells as `"AJ"` rather than
+  including the punctuation.
+- **Speaking rate.** Google's default `speakingRate` (1.0) came across as
+  slightly rushed on a real listen. `tts.py`'s `synthesize_segment()` now
+  sets it to `0.93`.
+- **Deterministic opening line.** The Tier 1 prompt used to be told to
+  "never invent a greeting," leaving the show with no proper open. Rather
+  than let the LLM write a greeting (risk of inconsistent phrasing or a
+  hallucinated time), `pipeline.py` now builds the greeting itself from
+  the same `broadcast_time` values already computed for prompt grounding
+  ("Good morning, it's 6:03 AM, Friday, August 22...") and prepends it to
+  the Tier 1 segment text, after generation — applies whether Tier 1
+  generation succeeded or fell back to a placeholder.
+- **Episode date used the UTC calendar day, not the local one.** Caught
+  while touching this same date-handling code for the greeting: the
+  episode's filename/id/title used `datetime.now(timezone.utc)`'s date
+  directly, instead of the NY-local date already computed for broadcast
+  grounding. Harmless in practice given the 6am ET schedule, but a
+  free fix while already in this code — now uses the local date.
+- **Category scope (soccer).** After actually listening, the "general
+  club football" coverage in the Soccer/World Cup segment wasn't what was
+  wanted — added a `CATEGORY_PREFERENCES["soccer_world_cup"]` entry
+  scoping it to USMNT and men's Olympic soccer (broadening during an
+  actual World Cup), mirroring the existing `"nfl"` team-scoping entry.
+  The underlying feeds are still general club-football sources, so this
+  is a prompt-level filter for now, not a change to what's fetched — see
+  "Possible next steps" below.
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)
@@ -356,6 +416,12 @@ NWSL and WNBA each now have a dedicated feed (The Equalizer, and The Next, along
 
 - Tune `dedupe.py`'s similarity threshold based on real episodes
 - Revisit ElevenLabs if Google's sentence-break quality becomes annoying
+- **USMNT/Olympic soccer feeds.** The soccer segment is now prompt-scoped
+  to USMNT + men's Olympic soccer (see design notes above), but the
+  actual `feeds.yaml` sources for that category are still general
+  club-football feeds. If prompt-level filtering doesn't surface enough
+  relevant stories in practice, add a dedicated USMNT/Team USA/Olympic
+  soccer RSS source.
 - **v2**: Skip publishing on NYSE holidays (work's actual closure calendar),
   using the [`holidays`](https://pypi.org/project/holidays/) package
   instead of a plain Mon-Fri check in the launchd schedule
