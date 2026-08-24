@@ -17,11 +17,12 @@ PRONUNCIATIONS = {
 SPELL_OUT = {
     "AI": "AI",
     "A.J.": "AJ",
+    "NVMe": "NVME",
 }
 
 # Pause inserted between paragraphs within one segment, so a multi-story segment
 # gets audible breathing room instead of sounding like one breathless run-on.
-PARAGRAPH_BREAK_MS = 500
+PARAGRAPH_BREAK_MS = 750
 
 _ALL_WORDS = set(PRONUNCIATIONS) | set(SPELL_OUT)
 _PATTERN = (

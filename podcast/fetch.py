@@ -21,6 +21,20 @@ def _entry_guid(entry) -> str:
     return entry.get("id") or entry.get("link") or entry.get("title", "")
 
 
+def compute_cutoff(now_local: datetime) -> datetime:
+    """Normally a flat RECENCY_WINDOW_HOURS lookback. On Monday, extend back to
+    late Friday night instead — Friday/Saturday/Sunday news would otherwise fall
+    outside a same-day window and never get covered, since no episode runs over
+    the weekend. `seen_guids` still guards against re-covering anything already
+    aired, so widening the window here is safe."""
+    if now_local.weekday() == 0:  # Monday
+        friday = now_local - timedelta(days=3)
+        cutoff_local = friday.replace(hour=21, minute=0, second=0, microsecond=0)
+    else:
+        cutoff_local = now_local - timedelta(hours=config.RECENCY_WINDOW_HOURS)
+    return cutoff_local.astimezone(timezone.utc)
+
+
 def fetch_source(source: dict, segment_key: str, cutoff: datetime) -> list[FeedItem]:
     name = source.get("name", source.get("url", "unknown source"))
     try:
@@ -49,9 +63,8 @@ def fetch_source(source: dict, segment_key: str, cutoff: datetime) -> list[FeedI
         return []
 
 
-def fetch_all(feeds: dict, seen_guids: set[str]) -> dict[str, list[FeedItem]]:
+def fetch_all(feeds: dict, seen_guids: set[str], cutoff: datetime) -> dict[str, list[FeedItem]]:
     """Pull items newer than the recency window, excluding anything already seen."""
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=config.RECENCY_WINDOW_HOURS)
     results: dict[str, list[FeedItem]] = {"tier1": []}
 
     for source in feeds.get("tier1_general_news", []):

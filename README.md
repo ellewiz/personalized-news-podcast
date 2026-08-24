@@ -366,10 +366,12 @@ you actually listen rather than read the code:
 - **No pause between stories within a segment.** Paragraph breaks in the
   generated text meant nothing to the TTS layer — `pronunciation.to_ssml()`
   wrapped the whole segment in one `<speak>` block with no internal
-  breaks. Now it splits on blank lines and inserts a `<break time="500ms"/>`
-  between paragraphs, so distinct stories within one segment get audible
-  breathing room (separate from the existing 900ms pause *between*
-  segments in `pipeline.py`).
+  breaks. Now it splits on blank lines and inserts a `<break>` between
+  paragraphs (750ms — bumped once already from an initial 500ms after
+  real listening feedback that it still wasn't quite enough room to
+  track a topic change by ear), so distinct stories within one segment
+  get audible breathing room (separate from the existing 900ms pause
+  *between* segments in `pipeline.py`).
 - **Pronunciation regex boundary bug.** `pronunciation.py`'s match pattern
   used `\b...\b`, which requires a word/non-word character transition on
   each side — this silently fails to match an entry like `"A.J."` when
@@ -424,6 +426,45 @@ dependency — not in `requirements.txt`). Wired into `rss_feed.py` via
 both the standard RSS `<image>` tag and `<itunes:image>` (some apps only
 honor one or the other), and into `web_player.py`'s HTML header.
 
+**Weekend-aware recency window.** `fetch.py`'s recency cutoff used to be a
+flat `RECENCY_WINDOW_HOURS` (36h) lookback from "now," which works fine
+Tuesday-Friday but leaves a blind spot every Monday: 36 hours back from a
+Monday 6am run only reaches Saturday evening, missing all of Friday's
+news entirely, since no episode runs over the weekend to have covered
+it. Added `fetch.compute_cutoff()`, which on a Monday instead reaches
+back to the preceding Friday at 9pm — `seen_guids` still guards against
+re-covering anything actually aired, so widening the window on Monday
+only picks up items that were genuinely never seen. This also
+transparently handles a Monday holiday (e.g. Labor Day): the pipeline
+still runs on schedule regardless of holiday status, and its Monday
+lookback already covers the full weekend either way, while Tuesday's
+normal window independently reaches back into Sunday evening and
+redundantly re-covers all of Monday. Skipping publication entirely on
+market holidays remains a separate, still-deferred idea (see "Possible
+next steps").
+
+**Stray CJK characters in generated text.** A real episode script came
+back with a Chinese token spliced into an English sentence ("could决定
+where") — a rare model glitch, not something caused by any source
+content. Added a narrow check in `script._generate()` for CJK Unicode
+ranges specifically (not a broad non-ASCII check, since legitimate
+accented Latin names like `González` or `Čeferin` show up constantly and
+correctly) that triggers the same retry path already used for empty
+responses.
+
+**Cross-segment duplication and mislabeled content in the sports
+segments.** Two related issues surfaced from a real episode: a Rose
+Lavelle story appeared in both the Soccer/World Cup segment and the NWSL
+segment (the former had no explicit exclusion for women's soccer, even
+though the new USMNT/Olympic scoping was meant to be men's-only), and a
+tennis story and a WNBA story both appeared under the "NWSL" heading
+(there was no `CATEGORY_PREFERENCES["nwsl"]` entry at all, so the
+general women's-sports feeds it shares with other categories had no
+scoping instruction). Fixed both with prompt-level exclusions — soccer
+now explicitly excludes women's/NWSL content, and a new `nwsl` entry
+scopes that segment to actual NWSL news only, dropping anything from a
+different sport rather than mentioning it under the wrong heading.
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)
@@ -436,11 +477,13 @@ NWSL and WNBA each now have a dedicated feed (The Equalizer, and The Next, along
 - Tune `dedupe.py`'s similarity threshold based on real episodes
 - Revisit ElevenLabs if Google's sentence-break quality becomes annoying
 - **USMNT/Olympic soccer feeds.** The soccer segment is now prompt-scoped
-  to USMNT + men's Olympic soccer (see design notes above), but the
-  actual `feeds.yaml` sources for that category are still general
-  club-football feeds. If prompt-level filtering doesn't surface enough
-  relevant stories in practice, add a dedicated USMNT/Team USA/Olympic
-  soccer RSS source.
+  to USMNT + men's Olympic soccer (see design notes above), and one
+  candidate dedicated source (Chasing A Cup, a USMNT fan-news site) has
+  been added to `feeds.yaml` — but it's unverified (found via web search
+  only, couldn't be fetched and confirmed live in this environment).
+  Worth checking after a few episodes whether it's actually surfacing
+  real USMNT content, and removing it if not. If it doesn't pan out, an
+  official U.S. Soccer or Olympics feed would be worth a closer look.
 - **v2**: Skip publishing on NYSE holidays (work's actual closure calendar),
   using the [`holidays`](https://pypi.org/project/holidays/) package
   instead of a plain Mon-Fri check in the launchd schedule

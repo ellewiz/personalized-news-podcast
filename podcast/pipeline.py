@@ -40,7 +40,11 @@ CATEGORY_PREFERENCES = {
         "merger, or leveraged buyout (LBO) announced, cover it even if it would "
         "otherwise be bumped for space — name who's involved (acquirer and target), "
         "the deal size if reported, and the anticipated close date or timeline if "
-        "mentioned in the source material."
+        "mentioned in the source material. At the 6am ET broadcast time: Asian markets "
+        "(Tokyo, Hong Kong, Shanghai) have already closed for the day; European markets "
+        "(London, Frankfurt, Paris) are open and mid-session; the US market hasn't opened "
+        "yet. Never describe European markets as 'already wrapped' or 'closed' at "
+        "broadcast time — only Asia has actually closed by then."
     ),
     "nfl": (
         "Prioritize major headlines and storylines about the Philadelphia Eagles "
@@ -52,7 +56,16 @@ CATEGORY_PREFERENCES = {
         "transfers, etc.) if there's genuinely nothing USMNT- or Olympics-related to "
         "cover that day, and keep any such mention brief — this listener doesn't follow "
         "club football closely. Exception: during an active FIFA World Cup tournament "
-        "window, broaden coverage to the tournament generally, not just USMNT games."
+        "window, broaden coverage to the tournament generally, not just USMNT games. "
+        "This segment is men's soccer only — do not include women's national team, "
+        "NWSL, or other women's soccer content here, that's covered in the NWSL segment."
+    ),
+    "nwsl": (
+        "Only cover actual National Women's Soccer League (NWSL) games, players, and "
+        "league news in this segment. If the items below are about a different sport "
+        "entirely (tennis, WNBA, etc.), skip those items completely — don't mention them "
+        "here. The WNBA already has its own dedicated segment, so anything WNBA-specific "
+        "belongs there, not here."
     ),
 }
 
@@ -91,8 +104,9 @@ def run() -> Path:
         f"{now_local.strftime('%A, %B %-d')}. Here is the news you can use."
     )
 
+    cutoff = fetch.compute_cutoff(now_local)
     _log("Fetching feeds...")
-    fetched = fetch.fetch_all(feeds, seen_guids)
+    fetched = fetch.fetch_all(feeds, seen_guids, cutoff)
     for key, items in fetched.items():
         _log(f"  {key}: {len(items)} new item(s)")
 

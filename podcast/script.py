@@ -7,6 +7,12 @@ from .models import FeedItem, ScriptSegment
 
 _SENTENCE_END_RE = re.compile(r'[.!?][\'")\]]*\s')
 
+# Rare model glitch: a stray CJK token leaking into otherwise-English output
+# (e.g. "could决定 where"). Narrow to CJK ranges only — NOT a broad non-ASCII
+# check, since legitimate accented Latin names (González, Čeferin) show up
+# constantly and correctly.
+_UNEXPECTED_SCRIPT_RE = re.compile(r"[一-鿿぀-ヿ가-힯]")
+
 _client: Anthropic | None = None
 
 
@@ -46,6 +52,13 @@ happened).
 to the listener.
 - Skip throwaway filler phrases ("of course," "needless to say," "as you'd expect") that \
 add words without adding information.
+- When you say one event affects, complicates, or drives another — especially across \
+different markets or countries — briefly say why or how, not just that it does. A bare \
+causal claim with no mechanism leaves the listener guessing.
+- Don't reference a specific detail (what a quote said, what an injury was, what a \
+decision entailed) unless the source material actually tells you what it is. If the \
+source only gestures at "his comments" or "the injury" without specifics, omit the \
+reference or keep it general — don't imply detail you don't actually have.
 - Write each distinct story or idea as its own short paragraph, separated by a blank \
 line. Paragraph breaks are expected and encouraged."""
 
@@ -154,7 +167,7 @@ def _generate(prompt: str) -> str:
         text = "".join(block.text for block in response.content if block.type == "text").strip()
         if response.stop_reason == "max_tokens":
             text = _trim_to_last_sentence(text)
-        if text:
+        if text and not _UNEXPECTED_SCRIPT_RE.search(text):
             return text
     return text or "(Content unavailable for this segment.)"
 

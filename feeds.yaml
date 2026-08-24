@@ -33,6 +33,12 @@ tier2:
       url: https://feeds.bbci.co.uk/sport/football/rss.xml
     - name: ESPN Soccer
       url: https://www.espn.com/espn/rss/soccer/news
+    # EXPERIMENTAL / UNVERIFIED: found via web search only, could not be fetched
+    # and confirmed live in this environment (network egress was blocked). A
+    # dedicated USMNT fan-news site — worth checking after a few episodes to
+    # confirm it's actually surfacing real USMNT content, and removing if not.
+    - name: Chasing A Cup — USMNT
+      url: https://chasingacup.com/feed/
   tech_ai:
     - name: Daring Fireball
       url: https://daringfireball.net/feeds/main
