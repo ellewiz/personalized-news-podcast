@@ -13,6 +13,7 @@
     background: #fafafa;
     color: #1a1a1a;
   }
+  .artwork { width: 120px; height: 120px; border-radius: 16px; display: block; margin-bottom: 16px; }
   h1 { font-size: 28px; margin-bottom: 4px; }
   .subtitle { color: #666; margin-top: 0; margin-bottom: 32px; }
   h2 { font-size: 18px; margin-top: 40px; }
@@ -25,13 +26,18 @@
 </style>
 </head>
 <body>
+  <img class="artwork" src="artwork.png" alt="My Daily Briefing artwork">
   <h1>My Daily Briefing</h1>
   <p class="subtitle">Your daily news &amp; sports briefing</p>
-  <h2 class="latest-date">Friday, August 21</h2>
-    <audio controls preload="metadata" src="https://ellewiz.github.io/personalized-news-podcast/episodes/2026-08-21.mp3"></audio>
-    <p class="duration">20:38</p>
+  <h2 class="latest-date">Monday, August 24</h2>
+    <audio controls preload="metadata" src="https://ellewiz.github.io/personalized-news-podcast/episodes/2026-08-24.mp3"></audio>
+    <p class="duration">17:49</p>
     <h2>Previous episodes</h2>
     <ul class="older">
+      <li>
+        <div class="ep-date">Friday, August 21</div>
+        <audio controls preload="none" src="https://ellewiz.github.io/personalized-news-podcast/episodes/2026-08-21.mp3"></audio>
+      </li>
       <li>
         <div class="ep-date">Thursday, August 20</div>
         <audio controls preload="none" src="https://ellewiz.github.io/personalized-news-podcast/episodes/2026-08-20.mp3"></audio>
