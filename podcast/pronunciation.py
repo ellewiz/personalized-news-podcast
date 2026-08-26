@@ -2,11 +2,18 @@ import re
 from html import escape
 
 # Word/phrase -> how it should sound, substituted via SSML <sub alias="...">.
-# Add entries here as mispronunciations turn up in real episodes.
+# Add entries here as mispronunciations turn up in real episodes. For NFL
+# player names specifically, check Pro-Football-Reference's pronunciation
+# guide first: pro-football-reference.com/friv/pronunciation-guide.htm
 PRONUNCIATIONS = {
     "Kyiv": "Kee-ev",
     # Google's TTS was slurring the hyphen into one word ("riskon").
     "risk-on": "risk on",
+    # Eagles WR DeVonta Smith — confirmed via the PFR pronunciation guide.
+    "DeVonta": "Duh-VAWN-tuh",
+    # Eagles OT Jordan Mailata — a name that trips up TTS often enough to
+    # add proactively rather than wait for it to turn up mangled.
+    "Mailata": "My-LAH-tuh",
 }
 
 # Words/phrases that should be spelled out letter-by-letter (SSML <say-as
