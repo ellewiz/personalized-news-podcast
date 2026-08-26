@@ -5,15 +5,25 @@ from html import escape
 # Add entries here as mispronunciations turn up in real episodes. For NFL
 # player names specifically, check Pro-Football-Reference's pronunciation
 # guide first: pro-football-reference.com/friv/pronunciation-guide.htm
+# (grepped directly once already — worth re-checking there before guessing
+# from a search snippet, which is how the original Mailata entry below
+# ended up wrong).
 PRONUNCIATIONS = {
     "Kyiv": "Kee-ev",
     # Google's TTS was slurring the hyphen into one word ("riskon").
     "risk-on": "risk on",
     # Eagles WR DeVonta Smith — confirmed via the PFR pronunciation guide.
-    "DeVonta": "Duh-VAWN-tuh",
-    # Eagles OT Jordan Mailata — a name that trips up TTS often enough to
-    # add proactively rather than wait for it to turn up mangled.
-    "Mailata": "My-LAH-tuh",
+    "DeVonta": "Duh-VAWN-tay",
+    # Eagles OT Jordan Mailata — confirmed via the PFR pronunciation guide.
+    "Mailata": "My-LOT-uh",
+    # Eagles LB Zack Baun — confirmed via the PFR pronunciation guide.
+    "Baun": "BAWN",
+    # Eagles LB Nakobe Dean — confirmed via the PFR pronunciation guide.
+    # Keyed on the first name, not "Dean", since other unrelated Deans
+    # (e.g. Jamel Dean) have a different pronunciation.
+    "Nakobe": "Nuh-KOH-bee",
+    # Eagles TE Dallas Goedert — confirmed via the PFR pronunciation guide.
+    "Goedert": "GOD-ert",
 }
 
 # Words/phrases that should be spelled out letter-by-letter (SSML <say-as
