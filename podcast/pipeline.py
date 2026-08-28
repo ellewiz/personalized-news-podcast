@@ -31,12 +31,14 @@ CATEGORY_ORDER = ["nj_politics", "markets", "tech_ai", "soccer_world_cup", "nfl"
 CATEGORY_PREFERENCES = {
     "nj_politics": (
         "Cover New Jersey state and local political news — the governor's office, the "
-        "state legislature, statewide elections, and major state policy fights. Skip "
-        "purely municipal-level minutiae (local zoning board disputes, town council "
-        "trivia) unless it's a genuinely significant story. This listener lives in "
-        "Skillman, in Montgomery Township, Somerset County — stories touching Somerset "
-        "County or Central Jersey specifically are of extra interest, but statewide news "
-        "matters too."
+        "state legislature, statewide elections, and major state policy fights. This "
+        "listener lives in Ewing, Mercer County, and is represented by NJ's 12th "
+        "congressional district — prioritize stories touching Ewing, Mercer County, "
+        "Trenton, or NJ-12 specifically. She's light on local news generally and wants "
+        "to hear more of it, not less — lean toward including local/regional detail "
+        "rather than trimming it, and don't skip a story just because it's municipal- "
+        "or county-level. Statewide news matters too, covered with less priority than "
+        "the local angle above."
     ),
     "markets": (
         "Cover ONLY the 2 biggest stories, 3 at most — do not try to cover everything "

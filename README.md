@@ -509,8 +509,13 @@ even if the model doesn't follow the new rule perfectly.
 **New Jersey Politics segment, and a feed cleanup pass.** Added as a
 full tier2 category — its own feeds, voice (`en-US-Neural2-B`), label,
 and `CATEGORY_PREFERENCES` entry scoping it to NJ state/local political
-news with extra interest in Somerset County/Central Jersey — placed
-right after Tier 1, ahead of Markets. Alongside it, did a pass over
+news, placed right after Tier 1, ahead of Markets. Originally scoped
+around Skillman (actually the listener's workplace, not home — see the
+weather segment's location comment) before being corrected to her
+actual home in Ewing, Mercer County, and NJ's 12th congressional
+district, with an explicit "more local detail, not less" instruction
+since she's light on local news and specifically wants more of it, not
+a trimmed-down version. Alongside it, did a pass over
 existing feeds using actual citation evidence from real transcripts: `The
 Independent — World Cup` was cut (zero citations, and it's exactly the
 general-club-football content the soccer segment's USMNT/Olympic scoping
@@ -528,7 +533,7 @@ Tier 1 rarely name-check their sources even when they're contributing.
 
 NWSL and WNBA each now have a dedicated feed (The Equalizer, and The Next, along with ESPN WNBA respectively) alongside the two shared general women's-sports sources (Just Women's Sports, The Gist).
 
-New Jersey Politics has two experimental/unverified sources (New Jersey Monitor, NJ Spotlight News) — found via web search, not yet confirmed fetching live in this environment.
+New Jersey Politics has three experimental/unverified sources (New Jersey Monitor, NJ Spotlight News, and The Trenton Post for hyperlocal Mercer County/Trenton coverage) — found via web search, not yet confirmed fetching live in this environment.
 
 ## Possible next steps
 
@@ -543,9 +548,11 @@ New Jersey Politics has two experimental/unverified sources (New Jersey Monitor,
   Chasing A Cup's coverage ever thins out, an official U.S. Soccer or
   Olympics feed would be worth a closer look.
 - **NJ politics feed verification.** Same situation as Chasing A Cup was
-  — New Jersey Monitor and NJ Spotlight News were added on web-search
-  evidence only, not a confirmed live fetch. Worth checking after a few
-  episodes that they're actually resolving and contributing real content.
+  — New Jersey Monitor, NJ Spotlight News, and The Trenton Post were all
+  added on web-search evidence only, not a confirmed live fetch. Worth
+  checking after a few episodes that they're actually resolving and
+  contributing real content, especially The Trenton Post since it's the
+  one doing the actual hyperlocal Mercer County/Ewing work.
 - **v2**: Skip publishing on NYSE holidays (work's actual closure calendar),
   using the [`holidays`](https://pypi.org/project/holidays/) package
   instead of a plain Mon-Fri check in the launchd schedule

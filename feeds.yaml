@@ -25,13 +25,17 @@ tier1_general_news:
 tier2:
   nj_politics:
     # EXPERIMENTAL / UNVERIFIED: found via web search only, could not be fetched
-    # and confirmed live in this environment (network egress was blocked). Both
-    # are well-established, policy-focused NJ outlets with standard feed URLs —
-    # worth checking after a few episodes that they're actually resolving.
+    # and confirmed live in this environment (network egress was blocked). All
+    # three are well-established outlets with standard feed URLs — worth
+    # checking after a few episodes that they're actually resolving.
     - name: New Jersey Monitor
       url: https://newjerseymonitor.com/feed/
     - name: NJ Spotlight News
       url: https://www.njspotlightnews.org/feed/
+    # Hyperlocal to Mercer County/Trenton, right where the listener actually
+    # lives (Ewing) — added specifically for local depth, not just statewide news.
+    - name: The Trenton Post
+      url: https://thetrentonpost.com/feed/
   markets:
     - name: Bloomberg Markets
       url: https://feeds.bloomberg.com/markets/news.rss
