@@ -38,7 +38,16 @@ CATEGORY_PREFERENCES = {
         "to hear more of it, not less — lean toward including local/regional detail "
         "rather than trimming it, and don't skip a story just because it's municipal- "
         "or county-level. Statewide news matters too, covered with less priority than "
-        "the local angle above."
+        "the local angle above. Be precise about which level of government is actually "
+        "involved. The Governor's office and the state legislature are New Jersey state "
+        "government; members of Congress (e.g. Rep. LaMonica McIver) and federal "
+        "agencies are the federal government, which the state legislature has no "
+        "authority over. Don't attribute a federal-jurisdiction matter (e.g. defense "
+        "contracting, military procurement policy, anything Congress or a federal "
+        "agency actually controls) to 'the legislature' or 'lawmakers' without saying "
+        "it's Congress or the federal government, if that's what the source material "
+        "actually describes — a vague 'lawmakers' framing hides which body has "
+        "jurisdiction and can misattribute a federal story to the state legislature."
     ),
     "markets": (
         "Cover ONLY the 2 biggest stories, 3 at most — do not try to cover everything "

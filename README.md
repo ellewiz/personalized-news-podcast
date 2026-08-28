@@ -576,6 +576,21 @@ that this narrower mechanism can't reach, a real editing pass over the
 full assembled episode remains on the table — see "Possible next
 steps."
 
+**Misattributing a federal story to "the legislature."** A real episode
+covered a "right to repair" bill for military equipment as something
+"lawmakers in Trenton" were pushing — but defense contracting and
+military procurement policy is federal jurisdiction (Congress/DoD), not
+something a state legislature has any authority over, so that framing
+didn't actually make sense on inspection. The NJ Politics segment
+deliberately blends state (Governor, state legislature), federal (NJ's
+members of Congress), and local content, which makes this kind of
+level-of-government confusion an easy trap — a vague "lawmakers" or
+"the legislature" can paper over which body actually has jurisdiction.
+Added a rule to `CATEGORY_PREFERENCES["nj_politics"]` to be explicit
+about state vs. federal, and to not attribute a federal-jurisdiction
+matter to the state legislature without the source material actually
+saying so.
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)
