@@ -24,6 +24,7 @@ PRONUNCIATIONS = {
     "Nakobe": "Nuh-KOH-bee",
     # Eagles TE Dallas Goedert — confirmed via the PFR pronunciation guide.
     "Goedert": "GOD-ert",
+    "UEFA": "Yoo-AY-fuh",
 }
 
 # Words/phrases that should be spelled out letter-by-letter (SSML <say-as

@@ -465,6 +465,46 @@ now explicitly excludes women's/NWSL content, and a new `nwsl` entry
 scopes that segment to actual NWSL news only, dropping anything from a
 different sport rather than mentioning it under the wrong heading.
 
+**A prompt fix overcorrecting into a new problem.** The "European
+markets aren't already wrapped at 6am ET" fix above gave the model the
+right session-status facts, but no instruction on how to use them — so
+it started literally repeating "Remember, the US market hasn't opened
+yet" as a standalone reminder sentence, twice in one segment. Revised
+`CATEGORY_PREFERENCES["markets"]` to make clear those facts exist to
+keep specific claims accurate, not to be narrated as a caveat, and
+explicitly forbade "Remember," "Keep in mind," and repeated timing
+caveats. Same pattern showed up with the soccer segment's new USMNT
+scoping — the model started explaining its own editorial reasoning out
+loud ("nothing there touches the USMNT or Olympic picture directly").
+Generalized the fix at the `BROADCAST_STYLE_RULES` level instead of
+patching each segment individually: don't narrate why content was
+included or excluded, just report the news.
+
+**Segments still ending on a truncated sentence, on busy days.** The
+same `max_tokens` truncation class from earlier (there: raised
+1024→2048) recurred at 2048 on especially busy Tech/AI days, twice —
+both times leaving a short, standalone final paragraph that introduced
+a new subject with no follow-through ("Bill Gates... is sounding an
+alarm on a related front," then nothing). `_trim_to_last_sentence()`
+only guarded against cutoffs mid-*sentence*; a short paragraph that
+happens to end in a period passed right through as "complete." Raised
+the cap again (2048→3072) and hardened the trim function to also drop
+an entire short trailing paragraph (under ~120 characters) when more
+than one paragraph exists — since a cutoff already known to be abrupt
+is far more likely to have landed on an unfinished teaser than a
+deliberate short closer. Only triggers when `stop_reason == "max_tokens"`,
+so a normal complete generation with a legitimately short ending
+elsewhere is untouched.
+
+**Currency symbols breaking the Markdown transcript.** A `$` sign the
+model wrote literally (`$89 million` instead of spelling it out) paired
+up with another `$` elsewhere in the segment and triggered inline-math
+rendering in the listener's Markdown viewer — stripped spaces, italics,
+the works. Added a style rule to always spell out currency in words,
+plus a defensive `$` → `\$` escape in the transcript-writing step only
+(not the text sent to TTS), so a stray one can't break rendering again
+even if the model doesn't follow the new rule perfectly.
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)

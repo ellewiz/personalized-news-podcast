@@ -44,7 +44,15 @@ CATEGORY_PREFERENCES = {
         "(Tokyo, Hong Kong, Shanghai) have already closed for the day; European markets "
         "(London, Frankfurt, Paris) are open and mid-session; the US market hasn't opened "
         "yet. Never describe European markets as 'already wrapped' or 'closed' at "
-        "broadcast time — only Asia has actually closed by then."
+        "broadcast time — only Asia has actually closed by then. Use these facts to keep "
+        "specific claims accurate (e.g. 'which sent shares higher after Wednesday's "
+        "close') — do NOT turn them into a standalone reminder sentence to the listener. "
+        "Never write a sentence starting 'Remember,' 'Keep in mind,' or 'As a reminder' "
+        "about market timing, and never state the same timing caveat more than once in "
+        "this segment. If a company's news or earnings release outside trading hours "
+        "(after close or before open), say the reaction is showing up in after-hours, "
+        "pre-market, or futures trading — don't imply it happened in a session that had "
+        "already ended before the news broke."
     ),
     "nfl": (
         "Prioritize major headlines and storylines about the Philadelphia Eagles "
@@ -204,7 +212,12 @@ def run() -> Path:
         "",
     ]
     for s in segments:
-        transcript_lines += [f"## {SEGMENT_LABELS.get(s.segment_key, s.segment_key)}", "", s.text, ""]
+        # Escape literal "$" for display only — some Markdown viewers treat a pair of
+        # "$...$" as inline math and mangle everything between them. The prompt rule
+        # to spell out currency in words should prevent this in practice; this is
+        # just a defensive backstop for the transcript file, not the audio text.
+        display_text = s.text.replace("$", r"\$")
+        transcript_lines += [f"## {SEGMENT_LABELS.get(s.segment_key, s.segment_key)}", "", display_text, ""]
     transcript_path.write_text("\n".join(transcript_lines).rstrip() + "\n")
 
     _log("Synthesizing audio (calls the Google TTS API, one per segment)...")

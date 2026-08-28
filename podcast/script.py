@@ -44,12 +44,15 @@ identify them with a short appositive (e.g. "Vinod Khosla, the venture capitalis
 just "Vinod Khosla"). Skip this for well-known figures or companies.
 - State every number's unit, currency, or comparison explicitly — never leave a bare \
 number dangling (e.g. "16 rand per dollar," not "16 per dollar"; "up 3 percent," not \
-just "up 3").
+just "up 3"). Always spell out currency as words ("89 million dollars"), never use the \
+"$" symbol.
 - Avoid vague filler that doesn't actually convey information (e.g. don't say a company \
 "continued making its mark" or mention a "broader roundup" — say specifically what \
 happened).
 - Avoid meta-commentary about the show's own format or timing unless materially useful \
-to the listener.
+to the listener. This includes not explaining your own editorial choices — don't tell \
+the listener why a story is or isn't covered, or why a segment is wrapping up. Just \
+report the news and stop.
 - Skip throwaway filler phrases ("of course," "needless to say," "as you'd expect") that \
 add words without adding information.
 - When you say one event affects, complicates, or drives another — especially across \
@@ -111,7 +114,10 @@ THEY published, which is not the broadcast time above. If an item concerns a dif
 time zone (e.g. an overseas market or event), say so explicitly rather than implying it's \
 happening "now" relative to the broadcast time — e.g. note that an Asian market session \
 already closed hours earlier, rather than treating it as concurrent with a US session \
-that hasn't opened yet.
+that hasn't opened yet. Also avoid vague relative-time phrases that don't say which \
+session or day they mean ("recent trading," "lately," "in recent sessions") — name the \
+actual session or timeframe instead (e.g. "Wednesday's session," "overnight," \
+"in after-hours trading").
 - Never open with a greeting ("good morning," "good evening") — this segment continues \
 mid-episode, it is not a fresh start.
 
@@ -143,13 +149,27 @@ Forecast for {period_name}: {short_forecast}. High of {temperature} degrees \
 Write only the script text, nothing else."""
 
 
+# Below this length, a trailing paragraph right at a known max_tokens cutoff reads
+# as an unfinished new-topic teaser (e.g. "Bill Gates... is sounding an alarm on a
+# related front." with no follow-through) rather than a deliberate short closer.
+_MIN_TRAILING_PARAGRAPH_CHARS = 120
+
+
 def _trim_to_last_sentence(text: str) -> str:
     """If a response got cut off mid-sentence, trim back to the last complete
-    one rather than shipping audio that ends mid-word."""
+    one rather than shipping audio that ends mid-word. Also drops a short
+    trailing paragraph entirely, since a cutoff this abrupt is more likely to
+    have landed on a dangling intro than a real conclusion — only called when
+    stop_reason is already known to be max_tokens, so a normal, complete
+    generation with a legitimately short closer never goes through this."""
     matches = list(_SENTENCE_END_RE.finditer(text + " "))
     if not matches:
         return text
-    return text[: matches[-1].end()].strip()
+    trimmed = text[: matches[-1].end()].strip()
+    paragraphs = re.split(r"\n\s*\n", trimmed)
+    if len(paragraphs) > 1 and len(paragraphs[-1]) < _MIN_TRAILING_PARAGRAPH_CHARS:
+        trimmed = "\n\n".join(paragraphs[:-1]).strip()
+    return trimmed
 
 
 def _generate(prompt: str) -> str:
@@ -157,11 +177,12 @@ def _generate(prompt: str) -> str:
     text = ""
     # A busy news day can legitimately produce a long Tier 2 script (no length
     # cap in that prompt) — 1024 tokens was too tight and silently truncated
-    # mid-word. Retry once on a genuinely empty response before giving up.
+    # mid-word; 2048 still wasn't enough on the busiest days, raised to 3072.
+    # Retry once on a genuinely empty response before giving up.
     for _attempt in range(2):
         response = client.messages.create(
             model=config.ANTHROPIC_MODEL,
-            max_tokens=2048,
+            max_tokens=3072,
             messages=[{"role": "user", "content": prompt}],
         )
         text = "".join(block.text for block in response.content if block.type == "text").strip()
