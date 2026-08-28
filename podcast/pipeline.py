@@ -11,6 +11,7 @@ from .models import ScriptSegment
 BROADCAST_TZ = ZoneInfo("America/New_York")
 
 CATEGORY_LABELS = {
+    "nj_politics": "New Jersey Politics",
     "markets": "Markets",
     "soccer_world_cup": "Soccer and the World Cup",
     "tech_ai": "Tech and AI",
@@ -22,11 +23,21 @@ CATEGORY_LABELS = {
 # Human-readable transcript headers for the non-category segments too.
 SEGMENT_LABELS = {"tier1": "Top Headlines", "weather": "Weather", **CATEGORY_LABELS}
 
-# Segment order: markets right after Tier 1, then tech/AI, then all sports grouped together.
-CATEGORY_ORDER = ["markets", "tech_ai", "soccer_world_cup", "nfl", "nwsl", "wnba"]
+# Segment order: NJ politics right after Tier 1, then markets, then tech/AI,
+# then all sports grouped together.
+CATEGORY_ORDER = ["nj_politics", "markets", "tech_ai", "soccer_world_cup", "nfl", "nwsl", "wnba"]
 
 # Optional per-category listener preferences, folded into the script prompt.
 CATEGORY_PREFERENCES = {
+    "nj_politics": (
+        "Cover New Jersey state and local political news — the governor's office, the "
+        "state legislature, statewide elections, and major state policy fights. Skip "
+        "purely municipal-level minutiae (local zoning board disputes, town council "
+        "trivia) unless it's a genuinely significant story. This listener lives in "
+        "Skillman, in Montgomery Township, Somerset County — stories touching Somerset "
+        "County or Central Jersey specifically are of extra interest, but statewide news "
+        "matters too."
+    ),
     "markets": (
         "Cover ONLY the 2 biggest stories, 3 at most — do not try to cover everything "
         "even if there's a lot of market news. Pick the single most significant items "

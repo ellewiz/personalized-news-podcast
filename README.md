@@ -24,8 +24,8 @@ https://ellewiz.github.io/personalized-news-podcast/
 
 Every weekday morning, without anyone touching a keyboard:
 
-1. Pulls fresh items from a set of RSS feeds (general news, plus Markets,
-   Tech & AI, Soccer/World Cup, NFL, NWSL, and WNBA)
+1. Pulls fresh items from a set of RSS feeds (general news, plus New Jersey
+   Politics, Markets, Tech & AI, Soccer/World Cup, NFL, NWSL, and WNBA)
 2. Dedupes near-identical coverage of the same story
 3. Writes a spoken script per segment via the Anthropic API
 4. Synthesizes each segment as audio via Google Cloud Text-to-Speech, with
@@ -50,8 +50,9 @@ Two tiers per episode:
 
 ### Tier 2 — Deep dive (the bulk of the episode)
 
-Segment order, straight after Tier 1: **Markets**, **Tech & AI**, then all
-sports grouped together — **Soccer/World Cup, NFL, NWSL, WNBA**.
+Segment order, straight after Tier 1: **New Jersey Politics**, **Markets**,
+**Tech & AI**, then all sports grouped together — **Soccer/World Cup, NFL,
+NWSL, WNBA**.
 
 - Each category pulls from its own feed(s) (see [`feeds.yaml`](./feeds.yaml))
 - Depth scales with how much actually happened — a quiet window for a
@@ -505,6 +506,21 @@ plus a defensive `$` → `\$` escape in the transcript-writing step only
 (not the text sent to TTS), so a stray one can't break rendering again
 even if the model doesn't follow the new rule perfectly.
 
+**New Jersey Politics segment, and a feed cleanup pass.** Added as a
+full tier2 category — its own feeds, voice (`en-US-Neural2-B`), label,
+and `CATEGORY_PREFERENCES` entry scoping it to NJ state/local political
+news with extra interest in Somerset County/Central Jersey — placed
+right after Tier 1, ahead of Markets. Alongside it, did a pass over
+existing feeds using actual citation evidence from real transcripts: `The
+Independent — World Cup` was cut (zero citations, and it's exactly the
+general-club-football content the soccer segment's USMNT/Olympic scoping
+is meant to de-prioritize), along with `CBS News Technology` and `ABC
+News Technology` (thin generalist network feeds, redundant with the four
+dedicated tech-journalism outlets already covering that category). Worth
+noting the evidence bar here is real but not airtight — only a handful of
+transcripts existed to check against, and digest-style categories like
+Tier 1 rarely name-check their sources even when they're contributing.
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)
@@ -512,23 +528,27 @@ even if the model doesn't follow the new rule perfectly.
 
 NWSL and WNBA each now have a dedicated feed (The Equalizer, and The Next, along with ESPN WNBA respectively) alongside the two shared general women's-sports sources (Just Women's Sports, The Gist).
 
+New Jersey Politics has two experimental/unverified sources (New Jersey Monitor, NJ Spotlight News) — found via web search, not yet confirmed fetching live in this environment.
+
 ## Possible next steps
 
 - Tune `dedupe.py`'s similarity threshold based on real episodes
 - Revisit ElevenLabs if Google's sentence-break quality becomes annoying
-- **USMNT/Olympic soccer feeds.** The soccer segment is now prompt-scoped
-  to USMNT + men's Olympic soccer (see design notes above), and one
-  candidate dedicated source (Chasing A Cup, a USMNT fan-news site) has
-  been added to `feeds.yaml` — but it's unverified (found via web search
-  only, couldn't be fetched and confirmed live in this environment).
-  Worth checking after a few episodes whether it's actually surfacing
-  real USMNT content, and removing it if not. If it doesn't pan out, an
-  official U.S. Soccer or Olympics feed would be worth a closer look.
+- **USMNT/Olympic soccer feed.** Chasing A Cup, the dedicated USMNT
+  fan-news site added as an unverified experiment, has since been
+  confirmed working (cited by name with real USMNT content in a real
+  episode) — the two general club-football feeds that weren't pulling
+  their weight (The Independent, and one general tech feed's generalist
+  network-news counterparts) were trimmed in the same cleanup pass. If
+  Chasing A Cup's coverage ever thins out, an official U.S. Soccer or
+  Olympics feed would be worth a closer look.
+- **NJ politics feed verification.** Same situation as Chasing A Cup was
+  — New Jersey Monitor and NJ Spotlight News were added on web-search
+  evidence only, not a confirmed live fetch. Worth checking after a few
+  episodes that they're actually resolving and contributing real content.
 - **v2**: Skip publishing on NYSE holidays (work's actual closure calendar),
   using the [`holidays`](https://pypi.org/project/holidays/) package
   instead of a plain Mon-Fri check in the launchd schedule
-- Local politics category (feeds TBD — user is strong on national news,
-  wants better local coverage for their area)
 - **Storage ceiling** (flagged by a friend who saw the repo): GitHub
   Pages soft-caps published sites at 1GB. Today's episode alone is
   ~7.7MB, and `.git` is already 20MB after just a few days — at that

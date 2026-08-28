@@ -23,20 +23,27 @@ tier1_general_news:
     url: https://www.theatlantic.com/feed/channel/politics/
 
 tier2:
+  nj_politics:
+    # EXPERIMENTAL / UNVERIFIED: found via web search only, could not be fetched
+    # and confirmed live in this environment (network egress was blocked). Both
+    # are well-established, policy-focused NJ outlets with standard feed URLs —
+    # worth checking after a few episodes that they're actually resolving.
+    - name: New Jersey Monitor
+      url: https://newjerseymonitor.com/feed/
+    - name: NJ Spotlight News
+      url: https://www.njspotlightnews.org/feed/
   markets:
     - name: Bloomberg Markets
       url: https://feeds.bloomberg.com/markets/news.rss
   soccer_world_cup:
-    - name: The Independent — World Cup
-      url: http://www.independent.co.uk/sport/football/world-cup/rss
     - name: BBC Sport — Football
       url: https://feeds.bbci.co.uk/sport/football/rss.xml
     - name: ESPN Soccer
       url: https://www.espn.com/espn/rss/soccer/news
     # EXPERIMENTAL / UNVERIFIED: found via web search only, could not be fetched
     # and confirmed live in this environment (network egress was blocked). A
-    # dedicated USMNT fan-news site — worth checking after a few episodes to
-    # confirm it's actually surfacing real USMNT content, and removing if not.
+    # dedicated USMNT fan-news site — confirmed producing real USMNT content
+    # (cited by name in the 2026-08-26 episode).
     - name: Chasing A Cup — USMNT
       url: https://chasingacup.com/feed/
   tech_ai:
@@ -48,10 +55,6 @@ tier2:
       url: https://www.theverge.com/rss/index.xml
     - name: Ars Technica
       url: https://feeds.arstechnica.com/arstechnica/index
-    - name: CBS News Technology
-      url: https://www.cbsnews.com/latest/rss/technology
-    - name: ABC News Technology
-      url: https://abcnews.go.com/abcnews/technologyheadlines
   nfl:
     - name: ESPN NFL News
       url: https://www.espn.com/espn/rss/nfl/news
