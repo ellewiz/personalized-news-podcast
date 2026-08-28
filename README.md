@@ -507,7 +507,7 @@ plus a defensive `$` → `\$` escape in the transcript-writing step only
 even if the model doesn't follow the new rule perfectly.
 
 **New Jersey Politics segment, and a feed cleanup pass.** Added as a
-full tier2 category — its own feeds, voice (`en-US-Neural2-B`), label,
+full tier2 category — its own feeds, voice, label,
 and `CATEGORY_PREFERENCES` entry scoping it to NJ state/local political
 news, placed right after Tier 1, ahead of Markets. Originally scoped
 around Skillman (actually the listener's workplace, not home — see the
@@ -525,6 +525,32 @@ dedicated tech-journalism outlets already covering that category). Worth
 noting the evidence bar here is real but not airtight — only a handful of
 transcripts existed to check against, and digest-style categories like
 Tier 1 rarely name-check their sources even when they're contributing.
+
+**An invalid voice name silently dropped a whole segment's audio.** The
+NJ Politics segment above was originally assigned `en-US-Neural2-B` —
+which doesn't exist for the `en-US` locale (Google's Neural2 catalog has
+a `B` for some other locales, e.g. `en-AU`, but not this one). Every
+synthesis request for that segment failed, and per-segment failure
+isolation (see below) did exactly what it's designed to do: logged a
+warning and dropped just that segment's audio, episode still shipped.
+Which meant the bug was invisible in the `.md` transcript (script
+generation doesn't touch TTS, so the text was there) and only showed up
+as "the NJ stuff wasn't in the show" from actually listening. Fixed by
+switching to `en-US-Neural2-J`, the one remaining letter confirmed to
+exist for `en-US` specifically — a good reminder that a new voice
+assignment guessed under this environment's network restrictions needs
+confirming against a real published episode, not just added and
+forgotten.
+
+**Soccer segment narrating its own scope again.** Round 6 added a rule
+against explaining editorial/selection reasoning out loud, but it
+resurfaced in the soccer segment specifically ("so for now this is the
+extent of the news," "we'll leave it there for today"). The general
+`BROADCAST_STYLE_RULES` bullet wasn't holding for this one category, so
+reinforced it directly in `CATEGORY_PREFERENCES["soccer_world_cup"]`
+with the exact offending phrasing called out — same pattern as how the
+Markets "Remember, the market hasn't opened yet" overcorrection got a
+segment-specific fix on top of the general rule.
 
 ## Feeds and voices
 

@@ -10,7 +10,12 @@ tier1:
 
 tier2:
   nj_politics:
-    voice_name: "en-US-Neural2-B"
+    # NOTE: was originally "en-US-Neural2-B", which turned out not to exist
+    # for the en-US locale (B shows up in Google's catalog for en-AU, not
+    # en-US) — every synthesis request for this segment was silently
+    # failing and getting dropped from the audio, even though the script
+    # text generated fine. Switched to J, the last unused en-US letter.
+    voice_name: "en-US-Neural2-J"
     language_code: "en-US"
     voice_display_name: "New Jersey Politics"
   markets:

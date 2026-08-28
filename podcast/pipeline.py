@@ -79,7 +79,11 @@ CATEGORY_PREFERENCES = {
         "club football closely. Exception: during an active FIFA World Cup tournament "
         "window, broaden coverage to the tournament generally, not just USMNT games. "
         "This segment is men's soccer only — do not include women's national team, "
-        "NWSL, or other women's soccer content here, that's covered in the NWSL segment."
+        "NWSL, or other women's soccer content here, that's covered in the NWSL segment. "
+        "Do not explain why coverage is limited or why club football is being skipped — "
+        "no sentences like 'so for now this is the extent of the news,' 'we'll leave it "
+        "there for today,' or 'none of that involves American internationals.' Just "
+        "report what's actually there and stop; don't narrate the absence of a story."
     ),
     "nwsl": (
         "Only cover actual National Women's Soccer League (NWSL) games, players, and "
