@@ -552,6 +552,30 @@ with the exact offending phrasing called out — same pattern as how the
 Markets "Remember, the market hasn't opened yet" overcorrection got a
 segment-specific fix on top of the general rule.
 
+**Every segment opening with "Turning to X."** Each tier2 segment is a
+separate, stateless API call (see "each `.py` is like a microservice"
+discussion elsewhere in this project) — none of them can see what the
+others wrote, so left to their own devices they tend to independently
+converge on the same generic transition phrase to open with, since
+nothing nudges any one of them toward variety. A real episode had three
+of seven segments open with some flavor of "Let's turn to X" / "We turn
+now to X." Rather than a separate full-episode editing pass (the
+"managing editor" idea floated for this) — which would mean an extra
+API call, added latency, and a fresh chance to introduce errors while
+rewriting already-correct text — `pipeline.py`'s existing sequential
+loop over `CATEGORY_ORDER` already generates segments one at a time, so
+it now threads forward each segment's actual opening sentence
+(`script.first_sentence()`) into the next one's prompt as a "don't
+reuse this" list, alongside a static rule naming the specific overused
+constructions. Cheap (no extra generation call), and directly targets
+the actual cross-segment problem instead of a same-single-substitute
+risk a static per-segment rule alone would have (every segment
+independently avoiding "Turning to" but all converging on some other
+one phrase instead). If other cross-segment consistency issues turn up
+that this narrower mechanism can't reach, a real editing pass over the
+full assembled episode remains on the table — see "Possible next
+steps."
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)
@@ -565,6 +589,17 @@ New Jersey Politics has three experimental/unverified sources (New Jersey Monito
 
 - Tune `dedupe.py`'s similarity threshold based on real episodes
 - Revisit ElevenLabs if Google's sentence-break quality becomes annoying
+- **A real "managing editor" pass.** The opening-phrase repetition fix
+  above (threading forward used openers between segments) solves that
+  one specific cross-segment issue cheaply, but it's a narrow mechanism
+  — it only helps with opening lines, not other kinds of cross-segment
+  repetition or inconsistency that might turn up later (repeated
+  phrasing patterns, uneven tone, etc.). If that happens, a genuine
+  final pass over the full assembled episode text — one more API call,
+  after all segments are generated but before the transcript is written
+  and audio synthesized — would be the more general fix, at the cost of
+  extra latency/spend and some risk of introducing errors while
+  rewriting already-correct text.
 - **USMNT/Olympic soccer feed.** Chasing A Cup, the dedicated USMNT
   fan-news site added as an unverified experiment, has since been
   confirmed working (cited by name with real USMNT content in a real

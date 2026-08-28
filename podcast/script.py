@@ -120,7 +120,12 @@ actual session or timeframe instead (e.g. "Wednesday's session," "overnight," \
 "in after-hours trading").
 - Never open with a greeting ("good morning," "good evening") — this segment continues \
 mid-episode, it is not a fresh start.
-
+- Vary how you open this segment. Don't default to a generic transition phrase like \
+"Turning to X," "Let's turn to X," or "We turn now to X" — every other segment in this \
+episode is written the same way you're being asked to write this one, so if everyone \
+defaults to the same construction, the whole episode opens every segment identically. \
+Start with something specific to today's actual content instead.
+{avoid_openers_block}
 Writing style — this is spoken audio, not text read on a screen:
 {style_rules}
 {preferences_block}
@@ -172,6 +177,13 @@ def _trim_to_last_sentence(text: str) -> str:
     return trimmed
 
 
+def first_sentence(text: str) -> str:
+    """The opening sentence of a segment, used to show later segments what
+    opening constructions are already taken this episode."""
+    match = _SENTENCE_END_RE.search(text + " ")
+    return text[: match.end()].strip() if match else text.strip()
+
+
 def _generate(prompt: str) -> str:
     client = _get_client()
     text = ""
@@ -219,17 +231,33 @@ def build_tier2_segment(
     language_code: str,
     broadcast_time: str,
     preferences: str = "",
+    avoid_openers: list[str] | None = None,
 ) -> ScriptSegment:
     if not items:
         text = f"Quiet news window for {category_label} today — nothing significant to report."
     else:
         preferences_block = f"\nListener preferences for this segment:\n{preferences}\n" if preferences else "\n"
+        # Each segment is a separate, stateless API call with no visibility into what
+        # the others wrote — without this, every segment tends to independently default
+        # to the same generic transition phrase ("Turning to X"), since nothing else
+        # nudges it toward variety. Passing forward the opening sentences already used
+        # this episode gives each subsequent segment enough cross-episode awareness to
+        # avoid repeating them, without a separate editing pass over the whole episode.
+        if avoid_openers:
+            quoted = "\n".join(f'- "{o}"' for o in avoid_openers)
+            avoid_openers_block = (
+                f"\nOther segments in this episode already opened with:\n{quoted}\n"
+                "Don't reuse any of those constructions for this segment's opening line.\n"
+            )
+        else:
+            avoid_openers_block = ""
         prompt = TIER2_PROMPT.format(
             category_label=category_label,
             items=_items_block(items),
             preferences_block=preferences_block,
             broadcast_time=broadcast_time,
             style_rules=BROADCAST_STYLE_RULES,
+            avoid_openers_block=avoid_openers_block,
         )
         text = _generate(prompt)
     return ScriptSegment(
