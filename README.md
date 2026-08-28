@@ -576,20 +576,25 @@ that this narrower mechanism can't reach, a real editing pass over the
 full assembled episode remains on the table — see "Possible next
 steps."
 
-**Misattributing a federal story to "the legislature."** A real episode
-covered a "right to repair" bill for military equipment as something
-"lawmakers in Trenton" were pushing — but defense contracting and
-military procurement policy is federal jurisdiction (Congress/DoD), not
-something a state legislature has any authority over, so that framing
-didn't actually make sense on inspection. The NJ Politics segment
-deliberately blends state (Governor, state legislature), federal (NJ's
-members of Congress), and local content, which makes this kind of
-level-of-government confusion an easy trap — a vague "lawmakers" or
-"the legislature" can paper over which body actually has jurisdiction.
-Added a rule to `CATEGORY_PREFERENCES["nj_politics"]` to be explicit
-about state vs. federal, and to not attribute a federal-jurisdiction
-matter to the state legislature without the source material actually
-saying so.
+**Misattributing a federal story to "the legislature" — root cause
+confirmed.** A real episode covered a "right to repair" bill for
+military equipment as something "lawmakers in Trenton" were pushing.
+Traced this back to the actual source article (an NJ Spotlight News
+piece the listener found and shared) and confirmed it: the story is
+entirely about federal policy — the NDAA, Senate provisions, Sen.
+Elizabeth Warren, a Washington-state representative, defense-contractor
+lobbying against Congress — with no New Jersey legislature or Trenton
+connection whatsoever. The real bug wasn't just loose "lawmakers"
+wording, it's that the model appears to infer a story's subject from
+*which feed it came from* rather than its actual content — an
+NJ-branded outlet (NJ Spotlight News, in this case) also runs national
+and federal stories with no NJ-government angle at all, purely because
+they're relevant to its readers. Extended
+`CATEGORY_PREFERENCES["nj_politics"]` with an explicit rule: judge a
+story's subject from its content, never from the name of the outlet
+that ran it, and don't manufacture a Trenton/state-legislature
+connection that isn't actually there — skip the item or frame it
+plainly as national/federal news instead.
 
 ## Feeds and voices
 

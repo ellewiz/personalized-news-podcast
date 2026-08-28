@@ -47,7 +47,16 @@ CATEGORY_PREFERENCES = {
         "agency actually controls) to 'the legislature' or 'lawmakers' without saying "
         "it's Congress or the federal government, if that's what the source material "
         "actually describes — a vague 'lawmakers' framing hides which body has "
-        "jurisdiction and can misattribute a federal story to the state legislature."
+        "jurisdiction and can misattribute a federal story to the state legislature. "
+        "IMPORTANT: an item coming from an NJ-branded outlet (New Jersey Monitor, NJ "
+        "Spotlight News, The Trenton Post) does NOT mean the story itself is about New "
+        "Jersey government — these outlets also cover national and federal policy "
+        "stories for their readers with no NJ-specific angle at all (e.g. a national "
+        "defense-policy or NDAA story with no New Jersey legislator or agency involved). "
+        "Judge what a story is about from its actual content, never from which feed it "
+        "arrived on. If a story has no genuine NJ state, local, or NJ-delegation "
+        "connection, either skip it or frame it plainly as national/federal news — don't "
+        "manufacture a Trenton or state-legislature connection that isn't really there."
     ),
     "markets": (
         "Cover ONLY the 2 biggest stories, 3 at most — do not try to cover everything "
