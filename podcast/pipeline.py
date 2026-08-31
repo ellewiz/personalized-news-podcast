@@ -55,8 +55,13 @@ CATEGORY_PREFERENCES = {
         "defense-policy or NDAA story with no New Jersey legislator or agency involved). "
         "Judge what a story is about from its actual content, never from which feed it "
         "arrived on. If a story has no genuine NJ state, local, or NJ-delegation "
-        "connection, either skip it or frame it plainly as national/federal news — don't "
-        "manufacture a Trenton or state-legislature connection that isn't really there."
+        "connection, either skip it or report it as the national/federal story it is — "
+        "don't manufacture a Trenton or state-legislature connection that isn't really "
+        "there. When you do report it as national/federal news, just state the facts; "
+        "don't add a sentence pointing out that the story has no New Jersey angle or "
+        "connection (e.g. no 'with no specific New Jersey angle attached to it' or "
+        "similar) — that's still narrating your own editorial reasoning out loud, which "
+        "the writing-style rules below already forbid."
     ),
     "markets": (
         "Cover ONLY the 2 biggest stories, 3 at most — do not try to cover everything "

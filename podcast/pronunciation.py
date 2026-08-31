@@ -36,6 +36,14 @@ SPELL_OUT = {
     "AI": "AI",
     "A.J.": "AJ",
     "NVMe": "NVME",
+    # Google's TTS reads the periods in "a.m."/"p.m." as sentence-ending
+    # punctuation when the hour is spelled out as a word ("eleven p.m."),
+    # producing an audible pause mid-abbreviation ("p." <pause> "m."). The
+    # digit-adjacent, no-period form the greeting line generates ("6:00 AM")
+    # doesn't have this problem — Google's own time-format heuristic already
+    # reads that correctly — so only the period-bearing form needs an entry.
+    "A.M.": "AM",
+    "P.M.": "PM",
 }
 
 # Pause inserted between paragraphs within one segment, so a multi-story segment

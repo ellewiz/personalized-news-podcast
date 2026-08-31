@@ -49,6 +49,9 @@ just "up 3"). Always spell out currency as words ("89 million dollars"), never u
 - Avoid vague filler that doesn't actually convey information (e.g. don't say a company \
 "continued making its mark" or mention a "broader roundup" — say specifically what \
 happened).
+- Avoid lazy scene-setting words that imply drama without evidence for it — especially \
+"quietly" (e.g. "quietly built," "quietly rolled out"). If a source doesn't actually \
+describe secrecy or a low profile, don't imply one; just say what happened.
 - Avoid meta-commentary about the show's own format or timing unless materially useful \
 to the listener. This includes not explaining your own editorial choices — don't tell \
 the listener why a story is or isn't covered, or why a segment is wrapping up. Just \

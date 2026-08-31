@@ -596,6 +596,69 @@ that ran it, and don't manufacture a Trenton/state-legislature
 connection that isn't actually there — skip the item or frame it
 plainly as national/federal news instead.
 
+**The federal-story fix above immediately caused the meta-commentary bug
+it was meant to avoid.** The very next real episode covered the 1963
+March on Washington anniversary correctly framed as national news — then
+appended "The event was a national demonstration, with no specific New
+Jersey angle attached to it," narrating exactly the editorial reasoning
+`BROADCAST_STYLE_RULES` already forbids. Root cause: the instruction
+added above literally said "frame it plainly as national/federal news,"
+which the model satisfied by writing a sentence *about* the story's
+framing rather than just reporting the story. Tightened
+`CATEGORY_PREFERENCES["nj_politics"]` to explicitly forbid stating that a
+story has no New Jersey angle — report it as national news and stop,
+don't narrate the classification. Same failure shape as the soccer and
+markets overcorrections above: a fix that hands the model new facts or
+scope also has to say how *not* to narrate them, or it narrates them.
+
+**"a.m."/"p.m." read as separate letters with a pause on the period.**
+A real episode had "eleven p.m. British time, six p.m. Eastern" come out
+with an audible pause mid-abbreviation — Google's TTS was treating the
+periods as sentence-ending punctuation. Only happens when the hour is
+spelled out as a word before it; the code-generated greeting line's
+digit-adjacent, no-period format ("6:00 AM") already reads correctly via
+Google's own time-format heuristic, so only the period-bearing form
+needed a fix. Added `"A.M."`/`"P.M."` to `pronunciation.py`'s `SPELL_OUT`
+dict, same mechanism as the earlier `"A.J."` fix — spells out the letters
+without the periods that were causing the pause.
+
+**A 10-paragraph Tech & AI segment silently lost its last two stories.**
+`tts._fit_ssml()` trims text to fit under Google's 5000-byte SSML request
+limit (see "Google TTS request-size limit" above), but did so by slicing
+raw bytes at a fixed 500-byte step and re-snapping to the nearest earlier
+sentence boundary — imprecise, occasionally overshot and cut an extra
+sentence beyond what was actually necessary, and never logged that a trim
+happened at all. A listener-reported "I'm not sure the last tech story
+made it into the recording" turned out to be two full stories missing,
+not one, discoverable only by manually reproducing the trim — the same
+"invisible until someone listens" failure mode as the invalid-voice-name
+bug above, just for content loss instead of a whole segment. Rewrote
+`_fit_ssml()` to drop whole trailing paragraphs (each one a distinct
+story, per `pronunciation.to_ssml()`'s own blank-line splitting) one at a
+time until it fits, instead of an arbitrary byte offset — only ever drops
+as many whole stories as required, never a partial one — and added a log
+line whenever a trim actually happens, so `logs/publish.log` now shows it
+instead of it only being findable by noticing the audio doesn't match the
+transcript.
+
+**Inconsistent "AI" pronunciation — investigated, not a code bug.**
+Verified every "AI" occurrence in a real Tech & AI segment (eight of
+them) got the identical `<say-as interpret-as="characters">AI</say-as>`
+substitution from `pronunciation.py` — the markup itself isn't the
+problem. Most likely explanation is Google's Neural2 voices not
+rendering a short spelled-out token with fully consistent prosody across
+repeated occurrences in one request, which isn't something addressable
+from this codebase without changing TTS provider or voice. Left as-is
+since it was flagged as minor.
+
+**"Quietly" as filler.** A story opened with "Amazon Web Services has
+quietly built cost-cutting networking technology..." — unearned dramatic
+framing (the source didn't actually describe anything secretive) that
+reads as a lazy journalism tic. Added a `BROADCAST_STYLE_RULES` bullet
+naming "quietly" specifically, alongside the existing vague-filler rule
+("continued making its mark," etc.) — same pattern as calling out
+"Turning to X" by name once a general rule wasn't holding on its own.
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)
