@@ -681,6 +681,26 @@ naming "quietly" specifically, alongside the existing vague-filler rule
 ("continued making its mark," etc.) — same pattern as calling out
 "Turning to X" by name once a general rule wasn't holding on its own.
 
+**"Resumes" read as "résumés."** A real episode had "before play resumes"
+come out as "before play REZ-oo-mayz, the documents" — a heteronym:
+without an accent mark, "resumes" is ambiguous between the verb
+(re-ZOOMS) and the plural noun (résumés, the job documents), and
+Google's own default guess is the noun reading. A blind text substitution
+forcing the verb reading everywhere would just flip the bug in the other
+direction the next time a story genuinely means "résumés" (e.g. an
+AI-hiring story about screening resumes, plausible for the Tech & AI
+segment) — `pronunciation.py` has no grammatical awareness, so it can't
+tell the two apart from the word alone. Added
+`_is_resumes_verb_usage()`: only forces the verb reading when a subject
+word this podcast's actual beats commonly pair it with ("play resumes,"
+"trading resumes," "the market resumes," etc. — see
+`_RESUME_VERB_SUBJECTS`) directly precedes it; anything else keeps
+Google's own guess. That default direction is deliberate — an unlisted
+verb usage that stays unfixed is just the prior, already-tolerated
+failure mode, not a new one, whereas forcing the reading blind risked
+creating a fresh bug on the noun case instead of just fixing the verb
+case.
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)

@@ -25,6 +25,21 @@ PRONUNCIATIONS = {
     # Eagles TE Dallas Goedert — confirmed via the PFR pronunciation guide.
     "Goedert": "GOD-ert",
     "UEFA": "Yoo-AY-fuh",
+    # Heteronym: without an accent mark, Google's TTS guessed the noun
+    # ("résumés," the job documents) instead of the verb ("re-ZOOMS," as in
+    # "play resumes"). Only substituted when _is_resumes_verb_usage() below
+    # confirms verb context — see that function's comment for why.
+    "resumes": "ree-ZOOMS",
+}
+
+# "resumes" is only forced to the verb reading when one of these subject
+# words directly precedes it — see _is_resumes_verb_usage().
+_RESUME_VERB_SUBJECTS = {
+    "play", "trading", "action", "production", "service", "fighting",
+    "hostilities", "talks", "negotiations", "classes", "school", "work",
+    "the market", "the markets", "the season", "the game", "the match",
+    "the tournament", "the strike", "the trial", "the hearing",
+    "the meeting", "the session", "the broadcast", "the show", "the war",
 }
 
 # Words/phrases that should be spelled out letter-by-letter (SSML <say-as
@@ -65,6 +80,20 @@ _PATTERN = (
 )
 
 
+def _is_resumes_verb_usage(text: str, match_start: int) -> bool:
+    """"resumes" is a heteronym: verb ("play resumes," re-ZOOMS) vs. plural
+    noun ("job resumes," same reading as accented "résumés"). Google's own
+    default guess is the noun reading — that's the bug the PRONUNCIATIONS
+    entry above fixes — so only override it when a subject word this
+    podcast's actual beats commonly use directly precedes it. Anything not
+    on that list keeps Google's own guess rather than risk forcing the verb
+    reading onto a genuine "résumés" usage (e.g. a story about AI screening
+    job resumes) this list doesn't happen to cover — a missed fix here just
+    leaves the prior, already-tolerated failure mode, not a new one."""
+    preceding = text[:match_start].rstrip().lower()
+    return any(preceding.endswith(subject) for subject in _RESUME_VERB_SUBJECTS)
+
+
 def _spoken_form(matched: str) -> str:
     spell = SPELL_OUT.get(matched)
     if spell is None and matched.upper() in {w.upper() for w in SPELL_OUT}:
@@ -87,7 +116,11 @@ def _paragraph_fragment(text: str) -> str:
     last_end = 0
     for match in _PATTERN.finditer(text):
         parts.append(escape(text[last_end : match.start()]))
-        parts.append(_spoken_form(match.group(0)))
+        matched = match.group(0)
+        if matched.lower() == "resumes" and not _is_resumes_verb_usage(text, match.start()):
+            parts.append(escape(matched))
+        else:
+            parts.append(_spoken_form(matched))
         last_end = match.end()
     parts.append(escape(text[last_end:]))
     return "".join(parts)
