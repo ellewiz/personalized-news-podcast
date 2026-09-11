@@ -651,27 +651,50 @@ repeated occurrences in one request, which isn't something addressable
 from this codebase without changing TTS provider or voice. Left as-is
 since it was flagged as minor.
 
-**A fork-crash in the same family as the old ffmpeg bug — investigated,
-watching for recurrence, not yet fixed.** macOS's crash reporter caught a
-`SIGSEGV` at 6:00:16am on the 2026-09-02 run, in the same launchd
-coalition as that morning's `python run.py`: a forked child process (also
-a Python interpreter) crashed in `nw_settings_child_has_forked()`
-pre-`exec`, the identical Apple Network-framework atfork crash documented
-above for ffmpeg — it hits any `fork()` in a process that's already made
-HTTPS calls on other threads. The run wasn't affected; the episode
-published normally, and nothing in `logs/publish.log` or
-`publish.error.log` shows any trace of it, meaning whatever forked ran
-detached from the pipeline's own error handling. Confirmed our own code
-has zero `subprocess`/`Popen`/`os.fork` calls anywhere (the ffmpeg
-removal was thorough). Traced every `fork()`/`Popen()` call through
-module imports, Anthropic client construction, real RSS and National
-Weather Service HTTPS requests, `state.json`/`feed.xml`/`index.html`
-writes, and a `mutagen` duration read — none of them forked anything.
-That leaves the live Anthropic and Google TTS API calls as the only
-untested paths, since reproducing those costs real API spend. First
-occurrence only (checked `~/Library/Logs/DiagnosticReports/` — no prior
-instances), so left as a documented watch item rather than chased
-further blind; worth a closer look if it recurs.
+**A fork-crash in the same family as the old ffmpeg bug — root-caused
+and fixed.** Every weekday run was leaving one or two `SIGSEGV` crash
+reports behind (2026-09-08, 09-09 twice, 09-10, after the first sighting
+on 09-02): a forked child dying in `nw_settings_child_has_forked()`
+pre-`exec`, the same Apple Network-framework atfork bug documented above
+for ffmpeg. The 09-02 pass ruled out our own code correctly — there
+genuinely are no `subprocess`/`Popen`/`os.fork` calls in this repo — but
+stopped one layer short. The fork comes from the Anthropic SDK. On its
+first request it stamps telemetry headers onto the call, and
+`platform_headers()` (an `@lru_cache`d helper in
+`anthropic/_base_client.py`) calls `platform.platform()`, which shells
+out twice: `uname -p`, via the `processor` cached-property on
+`uname_result`, and `file -b <python>`, via `architecture()`.
+`subprocess` uses `fork()` for those rather than `posix_spawn()` because
+`close_fds` defaults to true. By then the run has pulled 30 RSS feeds
+over HTTPS, so macOS has initialized Network.framework and every
+subsequent `fork()` is fatal. The two different stack shapes in the crash
+reports are just those two commands — the `uname -p` one carries the
+extra `slot_tp_iter` and `cached_property.__get__` frames.
+
+The 09-02 note assumed reproducing this needed live Anthropic and Google
+TTS calls, and that was the thing that kept it unsolved. It doesn't: the
+fork happens while *building the request headers*, before any HTTP call
+goes out, so `platform_headers()` can be called directly for free, and
+the network activity that arms the bug is just the RSS fetch. Confirmed
+by measurement — 0 out of 10 forks crash before the feed fetch, 30 out of
+30 after it, with a crash signature identical to the 6am reports. Only
+four reports exist for six actual forks because macOS coalesces duplicate
+crash reports.
+
+The impact was cosmetic. `platform.py` catches `CalledProcessError` and
+`OSError` around both calls, so the dead child was swallowed silently and
+the headers still resolved to `MacOS`/`arm64`; that's why nothing ever
+appeared in `logs/publish.log`, every episode published, and the
+three-attempt retry loop in `scripts/publish.sh` never once fired — that
+loop's comment about `run.py` crashing is wrong, only the forked child
+ever died. Forking a multi-threaded process is genuinely unsafe though,
+so it's fixed rather than tolerated: `run.py` now calls
+`platform.platform()` at the top, before any import that touches the
+network, which does both forks while the process is still single-threaded
+and network-free. `platform.platform()` caches its result, so the SDK's
+later call is a cache hit and never forks. Verified end-to-end: the
+header-building path goes from two forks to zero, with identical header
+values.
 
 **"Quietly" as filler.** A story opened with "Amazon Web Services has
 quietly built cost-cutting networking technology..." — unearned dramatic
