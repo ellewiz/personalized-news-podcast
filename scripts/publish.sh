@@ -12,11 +12,15 @@ set -a
 source .env
 set +a
 
-# python run.py occasionally crashes with a SIGSEGV during fork() — a known
-# macOS bug where Apple's Network.framework corrupts state across fork() in
-# a process that has already made network calls (same root cause as the
-# ffmpeg fork crash documented in podcast/tts.py). It's intermittent and not
-# a bug in this codebase, so retry a couple of times before giving up.
+# Retry a couple of times before giving up: a transient API error or network
+# blip on one run usually clears on the next.
+#
+# This loop was originally added for a SIGSEGV-on-fork crash, on the
+# assumption that run.py was dying. It wasn't — only a forked child died,
+# and Python swallowed it, so every episode published and this loop never
+# actually fired for that bug. It's since been fixed at the root (run.py
+# warms platform.platform()'s caches before any network I/O; see the
+# fork-crash entry in the README). Kept as a general safety net.
 MAX_ATTEMPTS=3
 attempt=1
 until python run.py; do
