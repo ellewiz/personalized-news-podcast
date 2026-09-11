@@ -10,6 +10,11 @@ from .models import ScriptSegment
 
 GOOGLE_TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize"
 
+# The API key goes in the X-Goog-Api-Key header, not a ?key= query param.
+# Both authenticate identically, but requests' HTTPError message quotes the
+# full request URL — so with ?key= every failed synthesis wrote the live key
+# into logs/publish.log in plaintext. In a header it can't leak that way.
+
 # Google Cloud TTS hard-rejects any request with input text/SSML over 5000
 # bytes (a 400 Bad Request). Leave real margin below that for markup
 # overhead pronunciation.to_ssml() adds (<speak>, <sub>, <say-as> tags).
@@ -59,7 +64,7 @@ def synthesize_segment(segment: ScriptSegment, out_path: Path) -> Path:
 
     response = requests.post(
         GOOGLE_TTS_URL,
-        params={"key": config.GOOGLE_TTS_API_KEY},
+        headers={"X-Goog-Api-Key": config.GOOGLE_TTS_API_KEY},
         json={
             "input": {"ssml": _fit_ssml(segment.text)},
             "voice": {
@@ -83,7 +88,7 @@ def synthesize_pause(duration_ms: int, voice_name: str, language_code: str, out_
 
     response = requests.post(
         GOOGLE_TTS_URL,
-        params={"key": config.GOOGLE_TTS_API_KEY},
+        headers={"X-Goog-Api-Key": config.GOOGLE_TTS_API_KEY},
         json={
             "input": {"ssml": f'<speak><break time="{duration_ms}ms"/></speak>'},
             "voice": {
