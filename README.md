@@ -701,6 +701,80 @@ failure mode, not a new one, whereas forcing the reading blind risked
 creating a fresh bug on the noun case instead of just fixing the verb
 case.
 
+**A UK price read out as the price.** Tier 1 covered Apple's first
+folding iPhone as "priced at nearly 2,000 pounds" — the UK number, lifted
+from a BBC-framed headline — while the Tech & AI segment, working from US
+tech feeds, said two thousand dollars for the same phone in the same
+episode. Nothing in the prompts had ever said the listener is American:
+the existing currency rule only demanded that a number carry *some* unit,
+which "2,000 pounds" satisfies. Added a `BROADCAST_STYLE_RULES` bullet —
+prefer the US-dollar figure whenever the source material has one
+(including from a different item in the same list covering the same story
+for its own market), and where only a foreign-currency price exists,
+either say whose country's price it is ("about two thousand pounds in the
+UK") or drop the number, never present it as *the* price. Deliberately
+did **not** allow the model to convert. £2,000 at any plausible rate
+lands somewhere near 2,700 dollars, because Apple's UK price includes 20%
+VAT and regional pricing — a converted figure would have been further
+from the real 2,000-dollar US price than the pounds figure was, so the
+obvious-looking fix would have made that headline worse while sounding
+more correct. The same rule therefore also bars inventing an exchange
+rate for genuinely foreign sums (a Premier League transfer fee, a euro
+funding round): those stay in their native currency unless the source
+itself supplies both figures. Checked with the listener before narrowing
+it that far, since it does mean occasionally hearing "eighty-five million
+pounds" with no dollar equivalent. Fetching real FX rates each morning
+would lift the restriction properly — deferred, see "Possible next
+steps."
+
+**The markets timing caveat, round four — where prompt rules stopped
+being enough.** "Remember, the US session hasn't opened yet, so all of
+this is still setting the stage rather than playing out on the tape"
+shipped in a real episode, despite `CATEGORY_PREFERENCES["markets"]`
+already forbidding, in those words, a sentence starting "Remember" about
+market timing. Third relapse of the shape documented in the
+overcorrection entries above: the prompt hands the model 6am
+session-status facts so its *claims* stay accurate, and it keeps
+converting them into an aside to the listener instead. Fixed at three
+levels this time, because the first two had already been tried and had
+already failed:
+- **A substitute, not another prohibition.** Everything a timing caveat
+  conveys is already conveyed by naming where a move happened, so the
+  markets preferences now say to put the session inside the claim
+  ("futures are pointing lower," "in premarket trading," "after
+  Thursday's close") and then say nothing further about the clock. Same
+  for `TIER2_PROMPT`'s time-zone rule, whose old wording ("rather than
+  treating it as concurrent with a US session that hasn't opened yet")
+  was modelling the offending sentence while trying to prevent it.
+- **Closed the escape hatch.** The `BROADCAST_STYLE_RULES`
+  meta-commentary bullet said to avoid it "unless materially useful to
+  the listener" — exactly the opening the model kept taking, since a
+  caveat it just wrote obviously looked useful to it.
+- **A deterministic backstop.** `script._strip_timing_caveats()` runs on
+  every generated segment and drops any sentence that has all three of a
+  reminder opener ("Remember," "Keep in mind," "As a reminder," …), a
+  market/session subject, and a timing word — all three, so an ordinary
+  sentence that merely starts with "Remember" survives. Whole sentence,
+  not a clause rewrite: surgery on generated prose mid-sentence risks
+  ungrammatical audio, and these asides almost never carry anything the
+  surrounding paragraph hasn't already said. "Almost never" is why every
+  drop is logged to `publish.log` — same reasoning as the `_fit_ssml()`
+  trim logging above, a silent transformation is the one you can't
+  review. This needed an abbreviation-aware sentence splitter
+  (`_split_sentences()`) to work at all: the existing `[.!?]\s` split
+  cuts "the U.S. session hasn't opened yet" in half and neither half
+  matches on its own. It fails closed — where it can't tell, it leaves
+  text joined, so a missed caveat is the worst case rather than a
+  sentence cut in two. Replayed over every archived transcript (2,203
+  sentences across 17 episodes) it flags exactly the four offending
+  sentences and nothing else — including, as designed, none of the
+  legitimate copy that names a session inside the claim ("in premarket
+  action," "in Friday's session," "ahead of the US market open"). One of
+  those four does end in a clause carrying real news, which is the case
+  the logging exists for. `first_sentence()` now uses it too, having had the
+  same bug: it was feeding a bare "U.S." forward as an entire "opener
+  already used" line.
+
 ## Feeds and voices
 
 - All RSS sources: [`feeds.yaml`](./feeds.yaml)
@@ -755,6 +829,16 @@ New Jersey Politics has three experimental/unverified sources (New Jersey Monito
   until history is rewritten). Worth a real look at Git LFS or hosting
   episode audio outside git entirely (e.g. object storage) before this
   becomes a real problem rather than after.
+- **Real exchange rates for the currency rule.** The rule added above
+  forbids the model from converting a foreign amount into dollars,
+  because it has no idea what today's rate is. Fetching rates once per
+  run from a free endpoint and passing them into the prompts alongside
+  `broadcast_time` would let genuinely foreign sums (transfer fees, EU
+  fines, euro funding rounds) carry an accurate dollar equivalent
+  instead of none. Small gain for a new network dependency and another
+  failure path to isolate, so deferred — and it would not have helped
+  the iPhone case that prompted the rule, where the right number was a
+  different price, not a converted one.
 - **Local/free TTS**: a friend pointed at
   [OHF-Voice/piper1-gpl](https://github.com/OHF-Voice/piper1-gpl) —
   runs locally, no API key, no per-character cost at all (vs. Google's

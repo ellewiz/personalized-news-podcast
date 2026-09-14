@@ -13,7 +13,48 @@ _SENTENCE_END_RE = re.compile(r'[.!?][\'")\]]*\s')
 # constantly and correctly.
 _UNEXPECTED_SCRIPT_RE = re.compile(r"[一-鿿぀-ヿ가-힯]")
 
+# A period closing an abbreviation rather than a sentence. _SENTENCE_END_RE on
+# its own splits "the U.S. session hasn't opened yet" into two fragments, which
+# would hide a timing caveat from _is_timing_caveat() below instead of catching
+# it — the caveat's opener lands in one fragment and its subject in the other.
+_ABBREVIATION_TAIL_RE = re.compile(
+    r"(?:^|\s)(?:"
+    r"[A-Za-z]\."  # a lone initial: "J."
+    r"|(?:[A-Za-z]\.){2,}"  # a dotted abbreviation: "U.S.", "a.m."
+    r"|(?:Mr|Mrs|Ms|Dr|Prof|Sen|Rep|Gov|Gen|St|Jr|Sr|Inc|Corp|Co|Ltd|vs|etc|No)\."
+    r")$"
+)
+
+# A sentence whose whole job is reminding the listener what time it is or which
+# market is open — "Remember, the US session hasn't opened yet, so all of this is
+# still setting the stage." The prompts hand the model 6am session-status facts so
+# its claims stay accurate, and it keeps narrating them back as an aside instead
+# (see the README's overcorrection entries). Matching needs all three parts: a
+# reminder opener, a market/session subject, and a timing word — so an ordinary
+# sentence that merely starts with "Remember" survives.
+_CAVEAT_OPENER_RE = re.compile(
+    r"^\W*(?:remember|keep in mind|bear in mind|(?:just )?a(?:s a)? reminder"
+    r"|(?:it'?s )?worth remembering|note that|mind you|again)\b",
+    re.IGNORECASE,
+)
+_SESSION_SUBJECT_RE = re.compile(
+    r"\b(?:market|markets|session|sessions|trading|bell|exchange|exchanges"
+    r"|futures|premarket|pre-market|wall street)\b",
+    re.IGNORECASE,
+)
+_SESSION_TIMING_RE = re.compile(
+    r"\b(?:yet|still|already|ahead|until|so far|right now|this morning|at this hour)\b"
+    r"|\b(?:has|have|is|are|do|does|did|wo|ca)n['\u2019]?t\b",
+    re.IGNORECASE,
+)
+
 _client: Anthropic | None = None
+
+
+def _log(message: str) -> None:
+    # Same print-to-stdout convention as pipeline._log(); the launchd job sends
+    # stdout to logs/publish.log, so anything here lands in the run's log.
+    print(message, flush=True)
 
 
 def _get_client() -> Anthropic:
@@ -46,16 +87,27 @@ just "Vinod Khosla"). Skip this for well-known figures or companies.
 number dangling (e.g. "16 rand per dollar," not "16 per dollar"; "up 3 percent," not \
 just "up 3"). Always spell out currency as words ("89 million dollars"), never use the \
 "$" symbol.
+- This listener is American and wants money figures in US dollars. If an item gives a \
+price only in a foreign currency, do not present it as the price. Use the US-dollar \
+figure when the source material has one — including from a different item below covering \
+the same story, which may well price it for its own market instead. When only a \
+foreign-currency figure exists, either say whose country's price it is ("about two \
+thousand pounds in the UK") or leave the number out entirely. Never convert a foreign \
+amount into dollars yourself: you don't have today's exchange rate, and an overseas \
+retail price carries different local taxes and regional pricing anyway, so a converted \
+figure is not the US price. Only pair a foreign amount with a dollar figure when the \
+source material itself supplies both.
 - Avoid vague filler that doesn't actually convey information (e.g. don't say a company \
 "continued making its mark" or mention a "broader roundup" — say specifically what \
 happened).
 - Avoid lazy scene-setting words that imply drama without evidence for it — especially \
 "quietly" (e.g. "quietly built," "quietly rolled out"). If a source doesn't actually \
 describe secrecy or a low profile, don't imply one; just say what happened.
-- Avoid meta-commentary about the show's own format or timing unless materially useful \
-to the listener. This includes not explaining your own editorial choices — don't tell \
-the listener why a story is or isn't covered, or why a segment is wrapping up. Just \
-report the news and stop.
+- No meta-commentary about the show's own format, timing, or editorial choices. Don't \
+tell the listener why a story is or isn't covered, or why a segment is wrapping up. She \
+also knows perfectly well when she's listening, so never remind her what time it is or \
+what hasn't happened yet at this hour — no "Remember, the US market hasn't opened yet," \
+and no reworded version of it either. Report the news and stop.
 - Skip throwaway filler phrases ("of course," "needless to say," "as you'd expect") that \
 add words without adding information.
 - When you say one event affects, complicates, or drives another — especially across \
@@ -114,10 +166,11 @@ paragraph breaks between stories, per the writing-style rules below.
 - Do NOT copy time-of-day words ("this morning", "tonight", "good evening", etc.) \
 straight from a headline or summary — those were written by the source at whatever time \
 THEY published, which is not the broadcast time above. If an item concerns a different \
-time zone (e.g. an overseas market or event), say so explicitly rather than implying it's \
-happening "now" relative to the broadcast time — e.g. note that an Asian market session \
-already closed hours earlier, rather than treating it as concurrent with a US session \
-that hasn't opened yet. Also avoid vague relative-time phrases that don't say which \
+time zone (e.g. an overseas market or event), name that session inside the sentence \
+reporting the news, rather than implying it's happening "now" relative to the broadcast \
+time — e.g. "shares fell in Tokyo's session, which closed hours ago," not a bare "shares \
+fell today." Never add a separate aside telling the listener what is or isn't open at \
+broadcast time. Also avoid vague relative-time phrases that don't say which \
 session or day they mean ("recent trading," "lately," "in recent sessions") — name the \
 actual session or timeframe instead (e.g. "Wednesday's session," "overnight," \
 "in after-hours trading").
@@ -163,6 +216,58 @@ Write only the script text, nothing else."""
 _MIN_TRAILING_PARAGRAPH_CHARS = 120
 
 
+def _split_sentences(text: str) -> list[str]:
+    """Split text into sentences, keeping each one's trailing whitespace so the
+    pieces rejoin exactly. Treats a period that closes an abbreviation ("U.S.,"
+    "a.m.," "Sen.") as part of the sentence rather than the end of one.
+    Deliberately conservative: where it can't tell, it leaves text joined, so a
+    caller that drops matched sentences under-removes rather than cutting one in
+    half."""
+    sentences: list[str] = []
+    start = 0
+    for match in _SENTENCE_END_RE.finditer(text + " "):
+        candidate = text[start : match.end()]
+        if _ABBREVIATION_TAIL_RE.search(candidate.rstrip()):
+            continue
+        sentences.append(candidate)
+        start = match.end()
+    if text[start:].strip():
+        sentences.append(text[start:])
+    return sentences
+
+
+def _is_timing_caveat(sentence: str) -> bool:
+    return bool(
+        _CAVEAT_OPENER_RE.match(sentence.strip())
+        and _SESSION_SUBJECT_RE.search(sentence)
+        and _SESSION_TIMING_RE.search(sentence)
+    )
+
+
+def _strip_timing_caveats(text: str) -> str:
+    """Drop any sentence that exists only to remind the listener the market
+    isn't open yet. Three rounds of prompt wording haven't held on their own
+    (see the README), so this is the deterministic backstop.
+
+    Drops the whole sentence rather than surgically removing the caveat clause:
+    rewriting generated prose mid-sentence risks ungrammatical audio, and these
+    asides rarely carry anything the surrounding paragraph hasn't already said.
+    It logs every drop so the rare case where a trailing clause did carry
+    something real is visible in publish.log instead of silent."""
+    kept_paragraphs = []
+    for paragraph in re.split(r"\n\s*\n", text):
+        kept = []
+        for sentence in _split_sentences(paragraph):
+            if _is_timing_caveat(sentence):
+                _log(f"    dropped a market-timing caveat: {sentence.strip()!r}")
+                continue
+            kept.append(sentence)
+        rebuilt = "".join(kept).strip()
+        if rebuilt:
+            kept_paragraphs.append(rebuilt)
+    return "\n\n".join(kept_paragraphs)
+
+
 def _trim_to_last_sentence(text: str) -> str:
     """If a response got cut off mid-sentence, trim back to the last complete
     one rather than shipping audio that ends mid-word. Also drops a short
@@ -182,9 +287,11 @@ def _trim_to_last_sentence(text: str) -> str:
 
 def first_sentence(text: str) -> str:
     """The opening sentence of a segment, used to show later segments what
-    opening constructions are already taken this episode."""
-    match = _SENTENCE_END_RE.search(text + " ")
-    return text[: match.end()].strip() if match else text.strip()
+    opening constructions are already taken this episode. Uses the same
+    abbreviation-aware split as above, so an opener like "U.S. stocks slipped
+    overnight." isn't handed forward as a useless bare "U.S." """
+    sentences = _split_sentences(text)
+    return sentences[0].strip() if sentences else text.strip()
 
 
 def _generate(prompt: str) -> str:
@@ -204,8 +311,8 @@ def _generate(prompt: str) -> str:
         if response.stop_reason == "max_tokens":
             text = _trim_to_last_sentence(text)
         if text and not _UNEXPECTED_SCRIPT_RE.search(text):
-            return text
-    return text or "(Content unavailable for this segment.)"
+            return _strip_timing_caveats(text)
+    return _strip_timing_caveats(text) or "(Content unavailable for this segment.)"
 
 
 def build_tier1_segment(
