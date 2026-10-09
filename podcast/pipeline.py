@@ -1,3 +1,4 @@
+import shutil
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -271,6 +272,7 @@ def run() -> Path:
 
     _log("Synthesizing audio (calls the Google TTS API, one per segment)...")
     segment_paths = []
+    last_tts_error = None
     for i, segment in enumerate(segments):
         _log(f"  {segment.segment_key}...")
         segment_path = work_dir / f"{i:02d}-{segment.segment_key}.mp3"
@@ -280,6 +282,7 @@ def run() -> Path:
             # A TTS hiccup on one segment drops just that segment from this
             # episode instead of losing the whole run, same reasoning as above.
             _log(f"  {segment.segment_key} audio synthesis failed ({exc}) — skipping this segment")
+            last_tts_error = exc
             continue
         segment_paths.append(segment_path)
 
@@ -290,6 +293,21 @@ def run() -> Path:
                 segment_paths.append(pause_path)
             except Exception as exc:
                 _log(f"  pause after {segment.segment_key} failed ({exc}) — skipping pause")
+
+    if not segment_paths:
+        # Every segment failed, so there is no audio to publish. Per-segment
+        # skipping is for isolated hiccups; if nothing at all synthesized, the
+        # cause is systemic (typically a rejected/revoked Google API key, a 403)
+        # and stitching would only produce an empty MP3 that crashes later with
+        # a misleading "can't sync to MPEG frame". Stop here with the real cause
+        # and remove this run's stub files so they can't be committed.
+        shutil.rmtree(work_dir, ignore_errors=True)
+        transcript_path.unlink(missing_ok=True)
+        raise RuntimeError(
+            f"Google TTS produced no audio for any segment (last error: {last_tts_error}). "
+            "A 403 means the GOOGLE_TTS_API_KEY was rejected: check the key, billing, "
+            "and that the Text-to-Speech API is enabled in Google Cloud Console."
+        )
 
     _log("Stitching segments into one episode file...")
     config.EPISODES_DIR.mkdir(parents=True, exist_ok=True)
