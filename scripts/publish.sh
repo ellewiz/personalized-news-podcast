@@ -5,12 +5,29 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-git pull --no-rebase --no-edit origin main
+# Any non-zero exit (a failed git pull, a missing .env, run.py giving up after
+# its retries) raises a notification. Previously only the run.py give-up path
+# did, and only as a macOS popup, so a failure while away from the Mac went
+# unnoticed. If NTFY_TOPIC is set in .env, also push to the phone via ntfy.sh.
+notify_failure() {
+  local msg="Episode did not publish - check logs/publish.error.log"
+  osascript -e "display notification \"$msg\" with title \"Podcast: publish failed\" sound name \"Basso\"" 2>/dev/null || true
+  if [ -n "${NTFY_TOPIC:-}" ]; then
+    curl -fsS -m 10 -H "Title: Podcast: publish failed" -H "Priority: high" -H "Tags: warning" \
+      -d "$msg" "https://ntfy.sh/${NTFY_TOPIC}" >/dev/null 2>&1 || true
+  fi
+}
+trap 'rc=$?; [ "$rc" -ne 0 ] && notify_failure; exit "$rc"' EXIT
 
-source .venv/bin/activate
+# Load .env first so NTFY_TOPIC is available to the failure trap even if the
+# git pull below fails.
 set -a
 source .env
 set +a
+
+git pull --no-rebase --no-edit origin main
+
+source .venv/bin/activate
 
 # Retry a couple of times before giving up: a transient API error or network
 # blip on one run usually clears on the next.
@@ -26,8 +43,7 @@ attempt=1
 until python run.py; do
   if [ "$attempt" -ge "$MAX_ATTEMPTS" ]; then
     echo "run.py failed $MAX_ATTEMPTS times — giving up for today." >&2
-    osascript -e 'display notification "Episode did not publish after 3 attempts — check logs/publish.error.log" with title "Podcast: publish failed" sound name "Basso"' 2>/dev/null || true
-    exit 1
+    exit 1  # the EXIT trap sends the notification
   fi
   echo "run.py failed (attempt $attempt/$MAX_ATTEMPTS) — retrying in 5s..." >&2
   attempt=$((attempt + 1))
