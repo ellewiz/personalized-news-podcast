@@ -29,6 +29,22 @@ git pull --no-rebase --no-edit origin main
 
 source .venv/bin/activate
 
+# Only publish on office mornings, per a Home Assistant calendar. Opt-in: the
+# check runs only when HA_URL is set in .env. Skips quietly on a WFH day or when
+# there's no office/WFH event; a failed lookup skips too but exits non-zero so
+# the failure trap alerts. FORCE_RUN=1 bypasses it for manual runs.
+if [ -n "${HA_URL:-}" ] && [ -z "${FORCE_RUN:-}" ]; then
+  set +e
+  python scripts/office_check.py
+  office_rc=$?
+  set -e
+  case "$office_rc" in
+    0) ;;
+    10|11) exit 0 ;;
+    *) echo "Office check failed - not publishing today." >&2; exit 1 ;;
+  esac
+fi
+
 # Retry a couple of times before giving up: a transient API error or network
 # blip on one run usually clears on the next.
 #
