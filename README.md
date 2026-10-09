@@ -237,9 +237,11 @@ Set `NTFY_TOPIC` in `.env` and subscribe to that topic in the
 [ntfy](https://ntfy.sh) phone app to get the same alert as a push.
 
 **Office-day gating (optional).** Set `HA_URL` and `HA_TOKEN` in `.env` and
-`publish.sh` only publishes on mornings where a Home Assistant calendar
-(`HA_CALENDAR`, default `calendar.master_calendar`) has an event with
-`office` in its description. A `WFH` event, or no event at all, skips the run
+`publish.sh` only publishes on workdays (a Home Assistant workday calendar,
+`HA_WORKDAY_CALENDAR`, default `calendar.workday_calendar`, has an event, so
+weekends and holidays stop here) where another calendar (`HA_CALENDAR`,
+default `calendar.master_calendar`) has an event with `office` in its
+description. A `WFH` event, or no event at all, skips the run
 quietly; if Home Assistant can't be reached it skips and sends the failure
 alert. `FORCE_RUN=1 scripts/publish.sh` bypasses the check for manual runs.
 See `scripts/office_check.py`.
