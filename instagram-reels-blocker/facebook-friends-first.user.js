@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook: friends first
 // @description  Friends-only chronological feed. Hides Reels, Watch, groups, suggested and sponsored posts, and the "Open app" bar.
-// @version      1.2.0
+// @version      1.2.1
 // @match        https://www.facebook.com/*
 // @match        https://m.facebook.com/*
 // @run-at       document-start
@@ -26,7 +26,7 @@
   const FRIENDS_FEED = "/?filter=friends&sk=h_chr";
 
   // 1. Redirects (direct links and in-app navigation).
-  function route() {
+  function route(initialLoad) {
     const { pathname, search } = location;
     if (CONFIG.redirectReels && /^\/reels?(\/|$)/.test(pathname)) {
       location.replace("/");
@@ -36,7 +36,8 @@
       location.replace("/");
       return;
     }
-    if (CONFIG.friendsChronologicalHome && pathname === "/" && !search.includes("sk=")) {
+    // Only on a fresh page load. Redirecting during in-app taps reloads the feed.
+    if (initialLoad && CONFIG.friendsChronologicalHome && pathname === "/" && !search.includes("sk=")) {
       // Skip if we redirected in the last few seconds, so a Facebook rewrite
       // of the URL can't cause a redirect loop.
       try {
@@ -49,17 +50,17 @@
       location.replace(FRIENDS_FEED);
     }
   }
-  route();
+  route(true);
 
   for (const method of ["pushState", "replaceState"]) {
     const original = history[method];
     history[method] = function (...args) {
       const result = original.apply(this, args);
-      route();
+      route(false);
       return result;
     };
   }
-  window.addEventListener("popstate", route);
+  window.addEventListener("popstate", () => route(false));
 
   // 2. Hide menu entries for Reels and Watch.
   const style = document.createElement("style");
