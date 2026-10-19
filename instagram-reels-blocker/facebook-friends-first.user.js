@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook: friends first
-// @description  Removes Reels, Watch, and suggested/promoted posts from Facebook and prefers the chronological feed.
-// @version      1.0.0
+// @description  Friends-only chronological feed, no Reels/Watch, no suggested or sponsored posts, no "Open app" bar.
+// @version      1.1.0
 // @match        https://www.facebook.com/*
 // @match        https://m.facebook.com/*
 // @run-at       document-start
@@ -15,9 +15,13 @@
   const CONFIG = {
     redirectReels: true,
     redirectWatch: true,
-    preferChronological: true,
+    friendsChronologicalHome: true,
     hideSuggestedPosts: true,
+    hideSponsoredPosts: true,
+    hideOpenAppBar: true,
   };
+
+  const FRIENDS_FEED = "/?filter=friends&sk=h_chr";
 
   // 1. Redirects (direct links and in-app navigation).
   function route() {
@@ -30,15 +34,17 @@
       location.replace("/");
       return;
     }
-    if (CONFIG.preferChronological && pathname === "/" && !search.includes("sk=")) {
-      // Once per tab session, so a Facebook rewrite of the URL can't cause a loop.
+    if (CONFIG.friendsChronologicalHome && pathname === "/" && !search.includes("sk=")) {
+      // Skip if we redirected in the last few seconds, so a Facebook rewrite
+      // of the URL can't cause a redirect loop.
       try {
-        if (sessionStorage.getItem("fb-chrono-done")) return;
-        sessionStorage.setItem("fb-chrono-done", "1");
+        const last = Number(sessionStorage.getItem("fff-redirected-at") || 0);
+        if (Date.now() - last < 5000) return;
+        sessionStorage.setItem("fff-redirected-at", String(Date.now()));
       } catch (e) {
         return;
       }
-      location.replace("/?sk=h_chr");
+      location.replace(FRIENDS_FEED);
     }
   }
   route();
@@ -62,20 +68,53 @@
   `;
   (document.head || document.documentElement).appendChild(style);
 
-  // 3. Hide junk posts in the feed. Facebook's class names are scrambled, so
-  // match on the visible header text of each post instead.
+  // 3. Sweep the page for junk. Facebook's class names are scrambled, so
+  // match on visible text, link targets, and aria labels instead.
   const JUNK_HEADER =
-    /(^|\n)\s*(Suggested for you|Sponsored|People you may know|Reels and short videos|Suggested groups?|Suggested pages?)\s*(\n|$)/i;
+    /(^|\n)\s*(Suggested for you|People you may know|Reels and short videos|Suggested groups?|Suggested pages?)\s*(\n|$)/i;
+  const SPONSORED_TEXT = /(^|\n)\s*Sponsored\s*(\n|$)/i;
+  const SPONSORED_MARKERS =
+    'a[href*="/ads/about"], a[href*="ads/about"], [aria-label="Sponsored"]';
+  const OPEN_APP_TEXT = /^(Open app|Open in app|Open Facebook|Use app|Use the app|Get app|Get the app)$/i;
 
-  function sweep() {
+  function isSponsored(post, head) {
+    return SPONSORED_TEXT.test(head) || post.querySelector(SPONSORED_MARKERS) !== null;
+  }
+
+  function sweepPosts() {
     const posts = document.querySelectorAll('[role="article"]:not([data-fff-checked])');
     for (const post of posts) {
       const text = post.innerText || "";
       if (text.length < 50) continue; // not rendered yet, check again later
       post.setAttribute("data-fff-checked", "1");
-      const isReel = post.querySelector('a[href*="/reel/"]');
-      const isJunk = CONFIG.hideSuggestedPosts && JUNK_HEADER.test(text.slice(0, 500));
-      if (isReel || isJunk) post.style.display = "none";
+      const head = text.slice(0, 500);
+      const hide =
+        post.querySelector('a[href*="/reel/"]') ||
+        (CONFIG.hideSuggestedPosts && JUNK_HEADER.test(head)) ||
+        (CONFIG.hideSponsoredPosts && isSponsored(post, head));
+      if (hide) post.style.display = "none";
+    }
+  }
+
+  // The "Open app" bar is usually a fixed or sticky strip. Find the button by
+  // its text, then hide the nearest fixed/sticky ancestor (or the button itself).
+  function sweepOpenApp() {
+    const candidates = document.querySelectorAll(
+      'a:not([data-fff-app]), button:not([data-fff-app]), [role="button"]:not([data-fff-app])'
+    );
+    for (const el of candidates) {
+      el.setAttribute("data-fff-app", "1");
+      const label = (el.innerText || el.getAttribute("aria-label") || "").trim();
+      if (!label || label.length > 20 || !OPEN_APP_TEXT.test(label)) continue;
+      let target = el;
+      for (let node = el, depth = 0; node && depth < 10; node = node.parentElement, depth++) {
+        const position = getComputedStyle(node).position;
+        if (position === "fixed" || position === "sticky") {
+          target = node;
+          break;
+        }
+      }
+      target.style.display = "none";
     }
   }
 
@@ -85,7 +124,8 @@
     queued = true;
     requestAnimationFrame(() => {
       queued = false;
-      sweep();
+      sweepPosts();
+      if (CONFIG.hideOpenAppBar) sweepOpenApp();
     });
   }
   new MutationObserver(schedule).observe(document.documentElement, {

@@ -18,7 +18,7 @@ A free userscript that hides Reels on instagram.com and redirects `/reels/` link
 
 ## Other scripts in this folder
 
-- `facebook-friends-first.user.js`: redirects Reels and Watch to the home page, prefers the chronological feed, and hides suggested posts, People you may know, and suggested groups. Toggles are in the `CONFIG` block at the top. Facebook obfuscates its markup, so this matches on visible header text and will need occasional fixes. It is untested against the live site.
+- `facebook-friends-first.user.js`: opens the friends-only chronological feed, redirects Reels and Watch to the home page, and hides suggested posts, sponsored posts, People you may know, and the "Open app" bar. Toggles are in the `CONFIG` block at the top. Facebook obfuscates its markup, so this matches on visible text and link targets and will need occasional fixes. It is untested against the live site.
 - `reddit-old-layout.user.js`: sends reddit.com to old.reddit.com and bounces r/popular and r/all to your own home feed. Toggles are in the `CONFIG` block.
 
 Install each one the same way as the Reels script: open its raw GitHub URL in Safari and install it from the Userscripts menu, or copy the file into your Userscripts folder.
