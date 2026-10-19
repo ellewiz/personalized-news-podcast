@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook: friends first
-// @description  Friends-only chronological feed, no Reels/Watch, no suggested or sponsored posts, no "Open app" bar.
-// @version      1.1.0
+// @description  Friends-only chronological feed. Hides Reels, Watch, groups, suggested and sponsored posts, and the "Open app" bar.
+// @version      1.2.0
 // @match        https://www.facebook.com/*
 // @match        https://m.facebook.com/*
 // @run-at       document-start
@@ -16,6 +16,8 @@
     redirectReels: true,
     redirectWatch: true,
     friendsChronologicalHome: true,
+    hideReelsInFeed: true,
+    hideGroupPosts: true,
     hideSuggestedPosts: true,
     hideSponsoredPosts: true,
     hideOpenAppBar: true,
@@ -68,68 +70,112 @@
   `;
   (document.head || document.documentElement).appendChild(style);
 
-  // 3. Sweep the page for junk. Facebook's class names are scrambled, so
-  // match on visible text, link targets, and aria labels instead.
-  const JUNK_HEADER =
-    /(^|\n)\s*(Suggested for you|People you may know|Reels and short videos|Suggested groups?|Suggested pages?)\s*(\n|$)/i;
-  const SPONSORED_TEXT = /(^|\n)\s*Sponsored\s*(\n|$)/i;
-  const SPONSORED_MARKERS =
-    'a[href*="/ads/about"], a[href*="ads/about"], [aria-label="Sponsored"]';
-  const OPEN_APP_TEXT = /^(Open app|Open in app|Open Facebook|Use app|Use the app|Get app|Get the app)$/i;
+  // 3. Hide feed junk. Facebook's markup is scrambled, so this works from what
+  // is visibly on screen: find a telltale label or link, climb to the full-width
+  // block that holds it (one "feed unit"), and hide that block.
+  const REEL_HREF = /\/reels?(\/|\?|$)/;
+  const GROUP_HREF = /\/groups\//;
+  const SUGGESTED_LABEL =
+    /^(Suggested for you|Suggested|People you may know|Suggested groups?|Suggested pages?|Groups you might like|Pages you may like)$/i;
+  const REEL_LABEL = /^(Reels|Reels and short videos)$/i;
+  const SPONSORED_LABEL = /^Sponsored$/i;
+  // Buttons that only appear on posts from people/groups you are not friends with.
+  const STRANGER_BUTTON = /^(Follow|Join|Join group|Add friend)$/i;
+  const OPEN_APP_LABEL = /^(Open app|Open in app|Open Facebook|Use app|Use the app|Get app|Get the app)$/i;
 
-  function isSponsored(post, head) {
-    return SPONSORED_TEXT.test(head) || post.querySelector(SPONSORED_MARKERS) !== null;
-  }
+  const NEAR_TOP_PX = 180; // labels count only near the top of a post, not in comments
+  const retries = new WeakMap();
 
-  function sweepPosts() {
-    const posts = document.querySelectorAll('[role="article"]:not([data-fff-checked])');
-    for (const post of posts) {
-      const text = post.innerText || "";
-      if (text.length < 50) continue; // not rendered yet, check again later
-      post.setAttribute("data-fff-checked", "1");
-      const head = text.slice(0, 500);
-      const hide =
-        post.querySelector('a[href*="/reel/"]') ||
-        (CONFIG.hideSuggestedPosts && JUNK_HEADER.test(head)) ||
-        (CONFIG.hideSponsoredPosts && isSponsored(post, head));
-      if (hide) post.style.display = "none";
-    }
-  }
-
-  // The "Open app" bar is usually a fixed or sticky strip. Find the button by
-  // its text, then hide the nearest fixed/sticky ancestor (or the button itself).
-  function sweepOpenApp() {
-    const candidates = document.querySelectorAll(
-      'a:not([data-fff-app]), button:not([data-fff-app]), [role="button"]:not([data-fff-app])'
-    );
-    for (const el of candidates) {
-      el.setAttribute("data-fff-app", "1");
-      const label = (el.innerText || el.getAttribute("aria-label") || "").trim();
-      if (!label || label.length > 20 || !OPEN_APP_TEXT.test(label)) continue;
-      let target = el;
-      for (let node = el, depth = 0; node && depth < 10; node = node.parentElement, depth++) {
-        const position = getComputedStyle(node).position;
-        if (position === "fixed" || position === "sticky") {
-          target = node;
-          break;
-        }
+  function findUnit(el) {
+    const minWidth = window.innerWidth * 0.8;
+    for (let node = el; node && node !== document.body; node = node.parentElement) {
+      const parent = node.parentElement;
+      if (!parent) return null;
+      const rect = node.getBoundingClientRect();
+      if (rect.width >= minWidth && rect.height >= 120 && parent.children.length >= 3) {
+        // A unit is one post. Anything huge is probably the whole feed.
+        return rect.height <= 3500 && node.innerText.length <= 6000 ? node : null;
       }
-      target.style.display = "none";
     }
+    return null;
   }
 
+  function hideUnitOf(el, mustBeNearTop) {
+    const unit = findUnit(el);
+    if (!unit) {
+      // Layout may not be ready yet; try again shortly.
+      const tries = retries.get(el) || 0;
+      if (tries < 3 && el.isConnected) {
+        retries.set(el, tries + 1);
+        setTimeout(() => hideUnitOf(el, mustBeNearTop), 800);
+      }
+      return;
+    }
+    if (mustBeNearTop) {
+      const offset = el.getBoundingClientRect().top - unit.getBoundingClientRect().top;
+      if (offset > NEAR_TOP_PX) return;
+    }
+    unit.style.display = "none";
+  }
+
+  function hideOpenAppBar(el) {
+    const button = el.closest('a, button, [role="button"]') || el;
+    let target = button;
+    for (let node = button, depth = 0; node && depth < 10; node = node.parentElement, depth++) {
+      const position = getComputedStyle(node).position;
+      if (position === "fixed" || position === "sticky") {
+        target = node;
+        break;
+      }
+    }
+    target.style.display = "none";
+  }
+
+  function inspect(el) {
+    if (el.tagName === "A") {
+      const href = el.getAttribute("href") || "";
+      if (CONFIG.hideReelsInFeed && REEL_HREF.test(href)) hideUnitOf(el, false);
+      else if (CONFIG.hideGroupPosts && GROUP_HREF.test(href)) hideUnitOf(el, true);
+    }
+    if (el.childElementCount !== 0) return;
+    const text = el.textContent.trim();
+    if (!text || text.length > 30) return;
+    if (CONFIG.hideReelsInFeed && REEL_LABEL.test(text)) hideUnitOf(el, true);
+    else if (CONFIG.hideSuggestedPosts && SUGGESTED_LABEL.test(text)) hideUnitOf(el, true);
+    else if (CONFIG.hideSponsoredPosts && SPONSORED_LABEL.test(text)) hideUnitOf(el, true);
+    else if (CONFIG.hideSuggestedPosts && STRANGER_BUTTON.test(text)) hideUnitOf(el, true);
+    else if (CONFIG.hideOpenAppBar && OPEN_APP_LABEL.test(text)) hideOpenAppBar(el);
+  }
+
+  function scan(root) {
+    inspect(root);
+    for (const el of root.querySelectorAll("*")) inspect(el);
+  }
+
+  // Only rescan what changed, not the whole page, to keep scrolling smooth.
+  const pending = new Set();
   let queued = false;
-  function schedule() {
+  function enqueue(node) {
+    const el = node.nodeType === 1 ? node : node.parentElement;
+    if (el) pending.add(el);
     if (queued) return;
     queued = true;
     requestAnimationFrame(() => {
       queued = false;
-      sweepPosts();
-      if (CONFIG.hideOpenAppBar) sweepOpenApp();
+      const batch = [...pending];
+      pending.clear();
+      for (const root of batch) if (root.isConnected) scan(root);
     });
   }
-  new MutationObserver(schedule).observe(document.documentElement, {
+
+  new MutationObserver((records) => {
+    for (const record of records) {
+      if (record.type === "characterData") enqueue(record.target);
+      for (const node of record.addedNodes) enqueue(node);
+    }
+  }).observe(document.documentElement, {
     childList: true,
     subtree: true,
+    characterData: true,
   });
 })();
