@@ -12,7 +12,7 @@
   "use strict";
 
   const CONFIG = {
-    useOldReddit: true,
+    useOldReddit: false,
     blockPopularAndAll: true,
   };
 
