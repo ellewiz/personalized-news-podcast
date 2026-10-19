@@ -15,3 +15,10 @@ A free userscript that hides Reels on instagram.com and redirects `/reels/` link
 - The official Instagram app cannot be modified. Delete it or keep it off your home screen, and use Safari (add the site to your home screen for an app-like icon).
 - Instagram changes its page structure often, so the feed-hiding selectors may need occasional tweaks. The URL redirect is the sturdy part.
 - Reels sent to you in DMs through Beeper are outside this script's reach.
+
+## Other scripts in this folder
+
+- `facebook-friends-first.user.js`: redirects Reels and Watch to the home page, prefers the chronological feed, and hides suggested posts, People you may know, and suggested groups. Toggles are in the `CONFIG` block at the top. Facebook obfuscates its markup, so this matches on visible header text and will need occasional fixes. It is untested against the live site.
+- `reddit-old-layout.user.js`: sends reddit.com to old.reddit.com and bounces r/popular and r/all to your own home feed. Toggles are in the `CONFIG` block.
+
+Install each one the same way as the Reels script: open its raw GitHub URL in Safari and install it from the Userscripts menu, or copy the file into your Userscripts folder.
