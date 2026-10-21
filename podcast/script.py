@@ -69,6 +69,11 @@ reference or keep it general — don't imply detail you don't actually have.
 A headline that merely names someone (e.g. a call for "Sean Mannion" to be replaced) \
 doesn't tell you whether he is a player, coach, or executive — don't guess from context \
 or from the surrounding story. If the role isn't stated, use the name alone.
+- Skip a story entirely if the source gives no concrete facts about it. A headline that \
+only says a dispute, rumor, or controversy exists, without saying who is involved, what \
+happened, or why it matters, is not a story. Never write a paragraph whose only content \
+is that something happened and details are unknown (e.g. "no word yet on what sparked \
+it"), and don't pad it with background from past years to fill the gap.
 - Don't invent counts or ordinals ("second event," "third straight," "another round") \
 unless the source states them, and don't present a rumored or reported plan (an event's \
 format, a product lineup) as settled fact. Say "reportedly" or attribute it. A detail \
