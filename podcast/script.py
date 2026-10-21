@@ -65,6 +65,15 @@ causal claim with no mechanism leaves the listener guessing.
 decision entailed) unless the source material actually tells you what it is. If the \
 source only gestures at "his comments" or "the injury" without specifics, omit the \
 reference or keep it general — don't imply detail you don't actually have.
+- Get who did what to whom exactly as the source states it. In attacks, strikes, \
+lawsuits, and disputes, never swap the aggressor and the target, and never guess either \
+one from what seems plausible. Keep each claim attributed to whoever made it (e.g. \
+"Russian officials said" vs. "Ukrainian officials said"). If the items don't make the \
+actor, target, or source of a claim clear, leave that detail out.
+- Never fold two separate events into one story. If one item reports an attack on \
+Moscow and another reports a strike on Kharkiv, those are two events: give each its own \
+sentence with its own actor, target, and casualty figures. Don't carry a detail from one \
+item over to another.
 - Write each distinct story or idea as its own short paragraph, separated by a blank \
 line. Paragraph breaks are expected and encouraged."""
 
@@ -77,7 +86,8 @@ Rules:
 - Total runtime target: well under 1 minute (roughly 100-130 words).
 - Cover the top few headlines only, in a handful of sentences total.
 - If multiple items clearly describe the same story, mention it ONCE — never stack \
-multiple articles about one story.
+multiple articles about one story. Only merge items that report the same event; items \
+that are merely related (same war, same city, same day) are separate stories.
 - Plain, factual, spoken-audio tone. No headings, no numbered/bulleted lists, no markdown \
 symbols (#, *, -) — but do use paragraph breaks between stories, per the writing-style \
 rules below.
