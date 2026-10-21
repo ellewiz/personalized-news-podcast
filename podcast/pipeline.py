@@ -118,6 +118,15 @@ CATEGORY_PREFERENCES = {
         "here. The WNBA already has its own dedicated segment, so anything WNBA-specific "
         "belongs there, not here."
     ),
+    "wnba": (
+        "Only cover WNBA games, players, coaches, and league news in this segment. The "
+        "feeds for this segment are general women's-sports outlets, so many items will "
+        "be about other sports (NWSL and other women's soccer, tennis, MMA, etc.). Skip "
+        "those items completely — don't mention them here. NWSL and women's soccer have "
+        "their own dedicated segment earlier in the episode, so don't repeat any of it. "
+        "If nothing WNBA-related came in, keep this segment very short rather than "
+        "filling it with other sports."
+    ),
 }
 
 PAUSE_MS = 900
