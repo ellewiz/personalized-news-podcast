@@ -25,7 +25,8 @@ https://ellewiz.github.io/personalized-news-podcast/
 Every weekday morning, without anyone touching a keyboard:
 
 1. Pulls fresh items from a set of RSS feeds (general news, plus New Jersey
-   Politics, Markets, Tech & AI, Soccer/World Cup, NFL, NWSL, and WNBA)
+   Politics, Markets, Tech & AI, Soccer/World Cup, NFL, NWSL, WNBA, and a catch-all
+   Women's Sports segment)
 2. Dedupes near-identical coverage of the same story
 3. Writes a spoken script per segment via the Anthropic API
 4. Synthesizes each segment as audio via Google Cloud Text-to-Speech, with
@@ -52,7 +53,7 @@ Two tiers per episode:
 
 Segment order, straight after Tier 1: **New Jersey Politics**, **Markets**,
 **Tech & AI**, then all sports grouped together — **Soccer/World Cup, NFL,
-NWSL, WNBA**.
+NWSL, WNBA, Women's Sports**.
 
 - Each category pulls from its own feed(s) (see [`feeds.yaml`](./feeds.yaml))
 - Depth scales with how much actually happened — a quiet window for a
