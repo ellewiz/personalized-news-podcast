@@ -69,6 +69,11 @@ reference or keep it general — don't imply detail you don't actually have.
 A headline that merely names someone (e.g. a call for "Sean Mannion" to be replaced) \
 doesn't tell you whether he is a player, coach, or executive — don't guess from context \
 or from the surrounding story. If the role isn't stated, use the name alone.
+- Don't invent counts or ordinals ("second event," "third straight," "another round") \
+unless the source states them, and don't present a rumored or reported plan (an event's \
+format, a product lineup) as settled fact. Say "reportedly" or attribute it. A detail \
+like a city or venue also needs a reason to be in the story: if the source gives none, \
+leave it out rather than making it the headline of the sentence.
 - Write each distinct story or idea as its own short paragraph, separated by a blank \
 line. Paragraph breaks are expected and encouraged."""
 
