@@ -65,6 +65,10 @@ causal claim with no mechanism leaves the listener guessing.
 decision entailed) unless the source material actually tells you what it is. If the \
 source only gestures at "his comments" or "the injury" without specifics, omit the \
 reference or keep it general — don't imply detail you don't actually have.
+- Don't state a person's job, position, or title unless the source material says it. \
+A headline that merely names someone (e.g. a call for "Sean Mannion" to be replaced) \
+doesn't tell you whether he is a player, coach, or executive — don't guess from context \
+or from the surrounding story. If the role isn't stated, use the name alone.
 - Write each distinct story or idea as its own short paragraph, separated by a blank \
 line. Paragraph breaks are expected and encouraged."""
 

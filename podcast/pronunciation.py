@@ -25,6 +25,11 @@ PRONUNCIATIONS = {
     # Eagles TE Dallas Goedert — confirmed via the PFR pronunciation guide.
     "Goedert": "GOD-ert",
     "UEFA": "Yoo-AY-fuh",
+    # The period in "Character.AI" reads as a sentence boundary, so the TTS
+    # paused between "Character" and "AI" — and more than at real sentence
+    # ends. Respelled with no period so it flows as one name. Being the
+    # longer, earlier-starting match, it wins over the bare "AI" entry.
+    "Character.AI": "Character ay eye",
     # Heteronym: without an accent mark, Google's TTS guessed the noun
     # ("résumés," the job documents) instead of the verb ("re-ZOOMS," as in
     # "play resumes"). Only substituted when _is_resumes_verb_usage() below

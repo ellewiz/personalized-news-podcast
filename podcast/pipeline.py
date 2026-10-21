@@ -93,7 +93,9 @@ CATEGORY_PREFERENCES = {
     ),
     "nfl": (
         "Prioritize major headlines and storylines about the Philadelphia Eagles "
-        "specifically. Skip betting lines, odds, or prop bets entirely — not of interest."
+        "specifically. Skip betting lines, odds, or prop bets entirely — not of interest. "
+        "Eagles roles to get right: Sean Mannion is the offensive coordinator, not a "
+        "quarterback. Tanner McKee is the backup quarterback behind Jalen Hurts."
     ),
     "soccer_world_cup": (
         "Prioritize stories specifically about the US Men's National Team (USMNT) and "
