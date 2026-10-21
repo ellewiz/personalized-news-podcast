@@ -82,3 +82,8 @@ tier2:
       url: https://thenexthoops.com/category/wnba/feed/
     - name: ESPN WNBA
       url: https://www.espn.com/espn/rss/wnba/news
+  womens_sports:
+    - name: Just Women's Sports
+      url: https://justwomenssports.com/feed/
+    - name: The Gist — Daily Sports
+      url: https://www.thegistsports.com/rss-daily-sports.xml

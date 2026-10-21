@@ -65,6 +65,15 @@ SPELL_OUT = {
 # gets audible breathing room instead of sounding like one breathless run-on.
 PARAGRAPH_BREAK_MS = 750
 
+# Company names ending in ".AI" (Character.AI, Perplexity.ai, x.ai). The period
+# reads as a sentence boundary, so the TTS paused between the name and "AI" —
+# longer than at real sentence ends. Respelled with no period so it flows as one
+# name. Skips web addresses/emails (a preceding "/", "@", ".", or a following
+# "/" or ".com"-style suffix), and wins over the bare "AI" entry because it
+# starts earlier in the text.
+_DOT_AI = r"(?<![\w./@-])[A-Za-z][A-Za-z0-9-]*\.ai(?![\w/]|\.\w)"
+_DOT_AI_RE = re.compile(_DOT_AI, re.IGNORECASE)
+
 _ALL_WORDS = set(PRONUNCIATIONS) | set(SPELL_OUT)
 _PATTERN = (
     # Lookaround assertions instead of \b: \b requires a word/non-word transition
@@ -72,7 +81,7 @@ _PATTERN = (
     # both the trailing "." and the space are non-word characters, so no \b
     # transition occurs there and the match is silently skipped.
     re.compile(
-        r"(?<!\w)(?:" + "|".join(re.escape(word) for word in _ALL_WORDS) + r")(?!\w)",
+        _DOT_AI + r"|(?<!\w)(?:" + "|".join(re.escape(word) for word in _ALL_WORDS) + r")(?!\w)",
         re.IGNORECASE,
     )
     if _ALL_WORDS
@@ -95,6 +104,10 @@ def _is_resumes_verb_usage(text: str, match_start: int) -> bool:
 
 
 def _spoken_form(matched: str) -> str:
+    if _DOT_AI_RE.fullmatch(matched):
+        name = matched[: -len(".ai")]
+        return f'<sub alias="{escape(name)} ay eye">{escape(matched)}</sub>'
+
     spell = SPELL_OUT.get(matched)
     if spell is None and matched.upper() in {w.upper() for w in SPELL_OUT}:
         spell = next(v for k, v in SPELL_OUT.items() if k.lower() == matched.lower())

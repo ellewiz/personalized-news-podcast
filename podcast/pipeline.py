@@ -19,14 +19,19 @@ CATEGORY_LABELS = {
     "nfl": "the NFL",
     "nwsl": "the NWSL",
     "wnba": "the WNBA",
+    "womens_sports": "Women's Sports",
 }
 
 # Human-readable transcript headers for the non-category segments too.
 SEGMENT_LABELS = {"tier1": "Top Headlines", "weather": "Weather", **CATEGORY_LABELS}
 
 # Segment order: NJ politics right after Tier 1, then markets, then tech/AI,
-# then all sports grouped together.
-CATEGORY_ORDER = ["nj_politics", "markets", "tech_ai", "soccer_world_cup", "nfl", "nwsl", "wnba"]
+# then all sports grouped together, with the catch-all women's sports segment
+# last so it only picks up what the dedicated sports segments don't cover.
+CATEGORY_ORDER = [
+    "nj_politics", "markets", "tech_ai", "soccer_world_cup", "nfl", "nwsl", "wnba",
+    "womens_sports",
+]
 
 # Optional per-category listener preferences, folded into the script prompt.
 CATEGORY_PREFERENCES = {
@@ -93,7 +98,9 @@ CATEGORY_PREFERENCES = {
     ),
     "nfl": (
         "Prioritize major headlines and storylines about the Philadelphia Eagles "
-        "specifically. Skip betting lines, odds, or prop bets entirely — not of interest."
+        "specifically. Skip betting lines, odds, or prop bets entirely — not of interest. "
+        "Eagles roles to get right: Sean Mannion is the offensive coordinator, not a "
+        "quarterback. Tanner McKee is the backup quarterback behind Jalen Hurts."
     ),
     "soccer_world_cup": (
         "Prioritize stories specifically about the US Men's National Team (USMNT) and "
@@ -115,6 +122,29 @@ CATEGORY_PREFERENCES = {
         "entirely (tennis, WNBA, etc.), skip those items completely — don't mention them "
         "here. The WNBA already has its own dedicated segment, so anything WNBA-specific "
         "belongs there, not here."
+    ),
+    "wnba": (
+        "Only cover WNBA games, players, coaches, and league news in this segment. The "
+        "feeds for this segment are general women's-sports outlets, so many items will "
+        "be about other sports (NWSL and other women's soccer, tennis, MMA, etc.). Skip "
+        "those items completely — don't mention them here. NWSL and women's soccer have "
+        "their own dedicated segment earlier in the episode, so don't repeat any of it. "
+        "If nothing WNBA-related came in, keep this segment very short rather than "
+        "filling it with other sports. Notable stories from other women's sports have "
+        "their own segment right after this one, so leave them out here."
+    ),
+    "womens_sports": (
+        "This is the catch-all segment for notable women's sports stories that don't "
+        "belong in the dedicated segments: tennis, golf, track and field, gymnastics, "
+        "MMA, college and Olympic sports, and women's soccer outside the NWSL (Women's "
+        "Super League, Liga F, the women's national teams, etc.). Skip anything about "
+        "the NWSL or the WNBA completely — each has its own segment earlier in the "
+        "episode, so don't repeat it, even if it's the biggest story in the items. "
+        "Skip men's sports too. Only include stories that are genuinely notable: a "
+        "title or major result, a record, a significant signing or injury, or league- "
+        "or sport-level news. Leave out routine results and minor roundups. Cover at "
+        "most a handful of stories, and if nothing qualifies, keep the segment to a "
+        "sentence or two."
     ),
 }
 

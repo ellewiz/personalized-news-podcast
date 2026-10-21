@@ -42,6 +42,13 @@ tier2:
     voice_name: "en-US-Neural2-G"
     language_code: "en-US"
     voice_display_name: "WNBA"
+  womens_sports:
+    # All nine en-US Neural2 letters are taken, so this reuses the Soccer / World
+    # Cup voice. Not adjacent to it in the episode, and it differs from the
+    # WNBA voice right before it.
+    voice_name: "en-US-Neural2-D"
+    language_code: "en-US"
+    voice_display_name: "Women's Sports"
 
 weather:
   voice_name: "en-US-Neural2-I"
