@@ -74,6 +74,11 @@ actor, target, or source of a claim clear, leave that detail out.
 Moscow and another reports a strike on Kharkiv, those are two events: give each its own \
 sentence with its own actor, target, and casualty figures. Don't carry a detail from one \
 item over to another.
+- Don't put a day or date on an event ("Tuesday's close," "last week," "overnight") \
+unless that item states it. Never take a timing detail from one item and attach it to a \
+different item about the same company or topic. A market-wrap line about the mood \
+before the opening bell is not evidence of when a company reported earnings. If the \
+item doesn't say when something happened, leave the timing out.
 - Don't state a person's job, position, or title unless the source material says it. \
 A headline that merely names someone (e.g. a call for "Sean Mannion" to be replaced) \
 doesn't tell you whether he is a player, coach, or executive — don't guess from context \
