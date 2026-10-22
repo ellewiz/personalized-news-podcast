@@ -1,6 +1,6 @@
 # Instagram Reels blocker (iPhone Safari)
 
-A free userscript that hides Reels on instagram.com and redirects `/reels/` links to the home feed.
+A free userscript that hides Reels on instagram.com and redirects `/reels/` links to the home feed. A single Reel link opened from outside Instagram (for example from a DM in Beeper) still plays; moving on to any other Reel bounces you home.
 
 ## Install
 
