@@ -83,6 +83,10 @@ item doesn't say when something happened, leave the timing out.
 A headline that merely names someone (e.g. a call for "Sean Mannion" to be replaced) \
 doesn't tell you whether he is a player, coach, or executive — don't guess from context \
 or from the surrounding story. If the role isn't stated, use the name alone.
+- When an item does state a person's title, use it exactly as written. Never replace it \
+with a title you remember from elsewhere — roles change, and the items are more current \
+than your memory (if an item calls someone CEO, don't call them by a former or \
+different position).
 - Skip a story entirely if the source gives no concrete facts about it. A headline that \
 only says a dispute, rumor, or controversy exists, without saying who is involved, what \
 happened, or why it matters, is not a story. Never write a paragraph whose only content \
