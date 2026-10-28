@@ -88,6 +88,11 @@ only says a dispute, rumor, or controversy exists, without saying who is involve
 happened, or why it matters, is not a story. Never write a paragraph whose only content \
 is that something happened and details are unknown (e.g. "no word yet on what sparked \
 it"), and don't pad it with background from past years to fill the gap.
+- Never report a move or action by count alone ("released two players," "signed three \
+recruits," "made several roster moves"). Say who. If the items name only some of the \
+people involved, name those and drop the count entirely ("released Dean Clark" — not \
+"released two players, including Dean Clark"). If none are named, skip the move \
+entirely — a count with no names tells the listener nothing.
 - Don't invent counts or ordinals ("second event," "third straight," "another round") \
 unless the source states them, and don't present a rumored or reported plan (an event's \
 format, a product lineup) as settled fact. Say "reportedly" or attribute it. A detail \
@@ -168,15 +173,24 @@ Write only the script text, nothing else."""
 
 
 WEATHER_PROMPT = """You are writing the closing weather segment of a daily news podcast \
-— the classic "and now, the weather" sign-off that comes last, after the sports, the way \
-local TV newscasts close out. Using ONLY the forecast details below, write a short spoken \
+— the last segment of the episode, after the sports, the way local TV newscasts close \
+out. Using ONLY the forecast details below, write a short spoken \
 weather report for {location_label}.
 
 Rules:
 - Brief: 2-4 sentences, roughly 30-50 words.
+- Open with the forecast itself, e.g. "Skillman today: ..." or "Weather for Skillman: ...". \
+Weather has not been mentioned earlier in the episode, so never open with "and," "and \
+now," "and that's," "finally," "now," or anything else that implies a previous weather \
+mention or a transition from one.
 - Plain, factual, spoken-audio tone. Short, declarative, subject-verb-object sentences.
 - State the unit for every measurement you mention (temperature, wind speed, etc.) — \
 never leave a bare number.
+- Describe wind the way the forecast does. If it says calm, say "calm winds" and give no \
+speed — never say "0 miles per hour" or call zero wind "light." Only quote a speed the \
+forecast actually states.
+- No em-dashes or semicolons; this is read aloud. Keep the sign-off to a few plain words \
+(e.g. "Have a good day.") — don't promise the listener anything about tomorrow.
 - End on a short, natural sign-off line (e.g. wishing the listener a good day or commute).
 - No headings, no bullet points, no markdown — just the words to be read aloud.
 
@@ -223,10 +237,15 @@ def _generate(prompt: str) -> str:
     # cap in that prompt) — 1024 tokens was too tight and silently truncated
     # mid-word; 2048 still wasn't enough on the busiest days, raised to 3072.
     # Retry once on a genuinely empty response before giving up.
+    # Thinking is off on purpose: with it on, the model can spend the whole
+    # max_tokens budget reasoning over a big item list and return no text block
+    # at all (stop_reason max_tokens, empty text) — that shipped a blank Tech and
+    # AI segment on 2026-10-28, and the retry hit the same wall.
     for _attempt in range(2):
         response = client.messages.create(
             model=config.ANTHROPIC_MODEL,
             max_tokens=3072,
+            thinking={"type": "disabled"},
             messages=[{"role": "user", "content": prompt}],
         )
         text = "".join(block.text for block in response.content if block.type == "text").strip()
