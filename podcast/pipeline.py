@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 
 from dateutil import parser as dateparser
 
-from . import config, dedupe, fetch, rss_feed, script, state as state_module, tts, weather, web_player
+from . import config, dedupe, fetch, rss_feed, script, state as state_module, storage, tts, weather, web_player
 from .models import ScriptSegment
 
 # The actual listening context (Skillman, NJ) — used to ground scripts in real
@@ -170,7 +170,14 @@ def prune_old_episodes(app_state: dict, today) -> int:
         if dateparser.isoparse(ep["pub_date"]).date() >= cutoff:
             kept.append(ep)
             continue
-        (config.EPISODES_DIR / ep["audio_url"].rsplit("/", 1)[-1]).unlink(missing_ok=True)
+        filename = ep["audio_url"].rsplit("/", 1)[-1]
+        (config.EPISODES_DIR / filename).unlink(missing_ok=True)
+        if storage.enabled() and storage.owns_url(ep["audio_url"]):
+            try:
+                storage.delete(f"episodes/{filename}")
+            except Exception as exc:
+                # Never block publishing over cleanup; the orphan is harmless.
+                _log(f"  could not delete {filename} from R2 ({exc}) - leaving it")
         pruned += 1
     app_state["episodes"] = kept
     if pruned:
@@ -382,12 +389,22 @@ def run() -> Path:
     duration_seconds = tts.get_duration_seconds(episode_path)
     _log(f"Episode audio ready: {episode_path} ({duration_seconds}s, {file_size} bytes)")
 
+    if storage.enabled():
+        # Upload failure raises on purpose: publishing a feed that points at a
+        # file that isn't there is worse than failing so publish.sh retries.
+        _log("Uploading episode audio to R2...")
+        audio_url = storage.upload_mp3(episode_path, f"episodes/{episode_filename}")
+        # The local copy must go so it isn't committed to git.
+        episode_path.unlink()
+    else:
+        audio_url = f"{config.PODCAST_BASE_URL}/episodes/{episode_filename}"
+
     episode = {
         "guid": str(uuid.uuid4()),
         "title": f"Daily Briefing — {episode_id}",
         "description": "Your personalized news and sports briefing.",
         "pub_date": episode_date.isoformat(),
-        "audio_url": f"{config.PODCAST_BASE_URL}/episodes/{episode_filename}",
+        "audio_url": audio_url,
         "file_size": file_size,
         "duration_seconds": duration_seconds,
     }

@@ -247,6 +247,16 @@ quietly; if Home Assistant can't be reached it skips and sends the failure
 alert. `FORCE_RUN=1 scripts/publish.sh` bypasses the check for manual runs.
 See `scripts/office_check.py`.
 
+**Cloudflare R2 audio storage (optional).** Episodes older than 30 days are
+pruned automatically, but their mp3s would still live in git history forever.
+Set the five `R2_*` values in `.env` (see `.env.example`) and new episodes'
+audio is uploaded to an R2 bucket instead of being committed; the feed points
+at `R2_PUBLIC_URL`, while the feed, transcripts and web player stay on GitHub
+Pages. Pruning also deletes the R2 object. If any value is missing it falls
+back to serving mp3s from Pages. A failed upload fails the run (so
+`publish.sh` retries) rather than publishing a feed pointing at a missing file.
+Episodes already in the feed keep their Pages URLs until they age out.
+
 ## Design notes and lessons learned
 
 **Why not ffmpeg for stitching segments together.** The original design

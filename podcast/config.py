@@ -19,6 +19,14 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5")
 GOOGLE_TTS_API_KEY = os.environ.get("GOOGLE_TTS_API_KEY")
 
+# Optional Cloudflare R2 storage for episode mp3s (see podcast/storage.py). All
+# five must be set to turn it on; otherwise audio is served from GitHub Pages.
+R2_ACCOUNT_ID = os.environ.get("R2_ACCOUNT_ID")
+R2_ACCESS_KEY_ID = os.environ.get("R2_ACCESS_KEY_ID")
+R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY")
+R2_BUCKET = os.environ.get("R2_BUCKET")
+R2_PUBLIC_URL = os.environ.get("R2_PUBLIC_URL", "").rstrip("/")
+
 # Defaults to Skillman, NJ 08558 (workplace). Override via env vars if needed.
 WEATHER_LAT = float(os.environ.get("WEATHER_LAT", "40.408516"))
 WEATHER_LON = float(os.environ.get("WEATHER_LON", "-74.694682"))
