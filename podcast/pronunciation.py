@@ -25,6 +25,12 @@ PRONUNCIATIONS = {
     # Eagles TE Dallas Goedert — confirmed via the PFR pronunciation guide.
     "Goedert": "GOD-ert",
     "UEFA": "Yoo-AY-fuh",
+    # Tenerife striker Jesús de Miguel. Google's TTS read the first name as
+    # English "Jeezus". Keyed on the full name (both spellings, since the
+    # script generator often drops the accent) so an unrelated unaccented
+    # "Jesus" elsewhere keeps its default reading.
+    "Jesús de Miguel": "Hay-SOOS day Mee-GEL",
+    "Jesus de Miguel": "Hay-SOOS day Mee-GEL",
     # Heteronym: without an accent mark, Google's TTS guessed the noun
     # ("résumés," the job documents) instead of the verb ("re-ZOOMS," as in
     # "play resumes"). Only substituted when _is_resumes_verb_usage() below

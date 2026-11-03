@@ -144,7 +144,10 @@ CATEGORY_PREFERENCES = {
         "title or major result, a record, a significant signing or injury, or league- "
         "or sport-level news. Leave out routine results and minor roundups. Cover at "
         "most a handful of stories, and if nothing qualifies, keep the segment to a "
-        "sentence or two."
+        "sentence or two. Whenever you report a game's result, state the final score "
+        "if it appears anywhere in the items (e.g. college basketball and other team "
+        "sports), not just who won. If the items don't give a score, don't invent "
+        "one; just report the result."
     ),
 }
 
