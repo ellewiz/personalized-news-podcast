@@ -1,8 +1,10 @@
 import shutil
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+from dateutil import parser as dateparser
 
 from . import config, dedupe, fetch, rss_feed, script, state as state_module, tts, weather, web_player
 from .models import ScriptSegment
@@ -152,6 +154,28 @@ CATEGORY_PREFERENCES = {
 }
 
 PAUSE_MS = 900
+
+# Episodes older than this are dropped from the feed and their audio deleted, to
+# keep the GitHub Pages repo from growing without bound. Transcripts (small
+# text files) are kept.
+EPISODE_RETENTION_DAYS = 30
+
+
+def prune_old_episodes(app_state: dict, today) -> int:
+    """Remove episodes older than EPISODE_RETENTION_DAYS from state and delete
+    their mp3s. Returns how many were pruned."""
+    cutoff = today.date() - timedelta(days=EPISODE_RETENTION_DAYS)
+    kept, pruned = [], 0
+    for ep in app_state["episodes"]:
+        if dateparser.isoparse(ep["pub_date"]).date() >= cutoff:
+            kept.append(ep)
+            continue
+        (config.EPISODES_DIR / ep["audio_url"].rsplit("/", 1)[-1]).unlink(missing_ok=True)
+        pruned += 1
+    app_state["episodes"] = kept
+    if pruned:
+        _log(f"Pruned {pruned} episode(s) older than {EPISODE_RETENTION_DAYS} days.")
+    return pruned
 
 
 def _log(message: str) -> None:
@@ -376,6 +400,8 @@ def run() -> Path:
 
     all_seen_guids = {item.guid for items in fetched.values() for item in items}
     app_state["seen_guids"] = sorted(seen_guids | all_seen_guids)
+
+    prune_old_episodes(app_state, episode_date)
 
     _log("Updating feed.xml, web player, and state.json...")
     rss_feed.write_feed(app_state["episodes"])
