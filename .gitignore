@@ -5,3 +5,4 @@ __pycache__/
 docs/episodes/.tmp-*/
 logs/
 .DS_Store
+docs/episodes/*.zip
